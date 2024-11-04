@@ -1,163 +1,205 @@
-"""
-    Solves the Klotski puzzle
-"""
-
 from game import YellowSquare as _YellowSquare, RedSquare as _RedSquare, Board as _Board
 
-
 class YellowSquare(_YellowSquare):
-    # def update_position(self, position):
-    #     return YellowSquare(position[0], position[1])  # Assuming position is a tuple
-
     def update_position(self, position):
-        self.grid_x, self.grid_y = position
-        # Update rect attributes if needed, then return self
-        return self
-
+        return YellowSquare(position.x, position.y)
 
     def __hash__(self):
-        return hash(('YELLOW', (self.grid_x, self.grid_y)))  # Changed to use grid_x and grid_y
+        return hash(('YellowSquare', self.position))
 
-    # In solver.py, inside YellowSquare class
     @classmethod
-    def from_square(cls, square):
-        # Assuming square has size and color attributes
-        return cls(square.grid_x, square.grid_y, size=square.size, color=square.color)
-
+    def from_piece(cls, piece):
+        return cls(piece.position.x, piece.position.y)
 
 
 class RedSquare(_RedSquare):
-    # def update_position(self, position):
-    #     return RedSquare(position[0], position[1])  # Assuming position is a tuple
-
     def update_position(self, position):
-        self.grid_x, self.grid_y = position
-        # Update rect attributes if needed, then return self
-        return self
-
+        return RedSquare(position.x, position.y)
 
     def __hash__(self):
-        return hash(('RED', (self.grid_x, self.grid_y)))  # Changed to use grid_x and grid_y
+        return hash(('RedSquare', self.position))
 
     @classmethod
-    def from_square(cls, square):
-        return cls(square.grid_x, square.grid_y)
+    def from_piece(cls, piece):
+        return cls(piece.position.x, piece.position.y)
+    
+# class Board(_Board):
+#     def move(self, piece, position):
+#         print('pppppppppppiece')
+#         print(piece)
+#         print('positionnnnnnnnnn')
+#         print(position)
+#         pieces = tuple(
+#             _piece if _piece != piece
+#             else piece.update_position(position)
+#             for _piece in self.pieces
+#         )
+#         return Board.from_pieces(pieces)
+    
+#     def __hash__(self):
+#         # Unique identifier for each board configuration
+#         return hash(frozenset(self.pieces))
 
+#     def __eq__(self, other):
+#         # Check if two boards are equivalent
+#         return hash(self) == hash(other)
 
-class Board(_Board):
-    def __init__(self, red_square, yellow_squares):
-        self.red_square = red_square
-        self.yellow_squares = yellow_squares  # Add yellow squares to the Board
-        self.squares = [red_square] + yellow_squares  # Combine for easy access
-
-    # def move(self, piece, position):
-    #     if isinstance(piece, YellowSquare):
-    #         pieces = list(self.yellow_squares)
-    #         index = pieces.index(piece)
-    #         pieces[index] = piece.update_position(position)
-    #         return Board(self.red_square, pieces)
-
-    #     elif isinstance(piece, RedSquare):
-    #         # Update red square position
-    #         return Board(piece.update_position(position), self.yellow_squares)
-
-    #     raise NotImplementedError("Piece type not handled.")
-
+class Boardd(_Board):
     def move(self, piece, position):
-        # Update position and create a new board with updated pieces
+        print('SOOOOLVER')
         pieces = tuple(
-            _piece if _piece != piece else piece.update_position(position)
-            for _piece in [self.red_square] + self.yellow_squares
+            _piece if _piece != piece
+            else piece.update_position(position)
+            for _piece in self.pieces
         )
-        return Board.from_pieces(pieces)
-
-# I JUST NEED TO FIGURE OUT HOW PIECES IS IMPLEMENTED IN THE OTHER KLOTSKI
-# AND DO THAT HERE
-
-    @classmethod
-    def from_pieces(cls, pieces):
-        # Separate red square and yellow squares
-        red_square = next(p for p in pieces if isinstance(p, RedSquare))
-        yellow_squares = [p for p in pieces if isinstance(p, YellowSquare)]
-        return cls(red_square, yellow_squares)
-
+        return Boardd.from_pieces(pieces)
 
     def potential_moves(self):
         moves = []
         empty_positions = self.empty_positions()
-        for piece in [self.red_square] + self.yellow_squares:
-            for position in piece.possible_moves(empty_positions):  # You'll need to implement this method
-                moves.append((piece, position))
+        for piece in self.pieces:
+            if isinstance(piece, _YellowSquare) or isinstance(piece, _RedSquare):
+                for position in piece.possible_moves(empty_positions):
+                    moves.append((piece, position))
         return moves
 
     def __hash__(self):
-        return hash((self.red_square, tuple(self.yellow_squares)))
+        return hash(frozenset(self.pieces))
 
     def __eq__(self, other):
-        return (self.red_square, tuple(self.yellow_squares)) == (other.red_square, tuple(other.yellow_squares))
+        return hash(self) == hash(other)
 
-    # In solver.py, inside Board class
+    @classmethod
+    def from_pieces(cls, pieces: tuple):
+        return cls(pieces)
+
     @classmethod
     def from_board(cls, _board):
-        """Create a Board instance from another board instance."""
-        red_square = _board.red_square  # Directly access red_square
-        yellow_squares = _board.yellow_squares  # Directly access yellow_squares
-        return cls(red_square, yellow_squares)  # Create new Board instance
+        pieces = []
+        for piece in _board.pieces:
+            # print(piece.position)
+            if isinstance(piece, _YellowSquare):
+                pieces.append(_YellowSquare.from_piece(piece))
+            elif isinstance(piece, _RedSquare):
+                pieces.append(_RedSquare.from_piece(piece))
+            else:
+                raise NotImplementedError("Unknown piece type")
+        return cls.from_pieces(tuple(pieces))
 
-
+    def map_piece(self, piece, _board: _Board):
+        # Returns the corresponding piece in _board O(1)
+        return _board.pieces[self.pieces.index(piece)]
 
 
 def bfs_solver(_board: _Board):
-    start_board = Board.from_board(_board)  # Use the new from_board method
-    visited_boards = set()
+    # start_board = _Board([piece for piece in _board.pieces])
+    start_board = Boardd.from_board(_board)
 
+    visited_boards = set()
     new_boards = [start_board]
     new_boards_set = {start_board}
     transitions = {}
     board = None
+
     while new_boards:
-        board = new_boards.pop(0)  # Explore the first element
+
+        board = new_boards.pop(0)
+        new_boards_set.remove(board)
 
         if board.is_solved:
-            # Found the solution
             break
 
-        # Mark as visited
+        for curr_piece in board.pieces:
+                    if isinstance(curr_piece, _RedSquare):
+                        print(f"CURR: Red Square at {curr_piece.position}")
+                    elif isinstance(curr_piece, _YellowSquare):
+                        print(f"CURR: Yellow Square at {curr_piece.position}")
+
         visited_boards.add(board)
+
         for piece, move in board.potential_moves():
+            # print('board.potential_moves(): ')
+            # print(board.potential_moves())
+            # Log the attempted move with positions
+            # piece_type = "RedSquare" if isinstance(piece, _RedSquare) else "YellowSquare"
+            # print(f"Attempting to move {piece_type} at {piece.position} to {move}, "
+            #       f"possible positions: {piece.possible_moves(board.empty_positions())}")
+
+            # print('RIGHT BEFORE SOLVER*S MOVE')
             new_board = board.move(piece, move)
-            if new_board not in visited_boards and new_board not in new_boards_set:
+            # print('RIGHT AFTERRRRRRRRRRRRRRRRRRRRRRRRRRR SOLVER* MOVE')
+
+            # print(f"\nNEEEEEEEEEEEEEEEEEEEEEEW board:")
+            # for new_piece in new_board.pieces:
+            #         new_piece_type = "RedSquare" if isinstance(new_piece, _RedSquare) else "YellowSquare"
+            #         print(f"{new_piece_type} at {new_piece.position}")
+            # print(f"\nNEEEEEEEEEEEEEEEEEEEEEEW board:")
+            # for new_piece in new_board.pieces:
+            #         if isinstance(new_piece, _RedSquare):
+            #             print(f"Red Square at {new_piece.position}")
+            #         elif isinstance(new_piece, _YellowSquare):
+            #             print(f"Yellow Square at {new_piece.position}")
+                    
+
+            if new_board not in visited_boards and \
+                new_board not in new_boards_set:
+                # Log the new board state with positions
+                # print(f"New board generated:")
+                # for new_piece in new_board.pieces:
+                #     new_piece_type = "RedSquare" if isinstance(new_piece, _RedSquare) else "YellowSquare"
+                #     print(f"{new_piece_type} at {new_piece.position}")
+                
+                # piece_type = "RedSquare" if isinstance(piece, _RedSquare) else "YellowSquare"
+                # print(f"Move: {piece_type} at {piece.position} -> {move}")
                 new_boards.append(new_board)
                 new_boards_set.add(new_board)
+                transitions[new_board] = (board, board.map_piece(piece, _board), move)
 
-                transitions[new_board] = (board, piece, move)
-
+    # Backtrack to construct the solution path
     moves_taken = []
     while board != start_board:
         board, piece, move = transitions[board]
         moves_taken.insert(0, (piece, move))
+
+    print("MMoves found:", moves_taken)
     return moves_taken
 
 
-def explore_states():
-    # Used for exploration and analysis
-    initial_board = Board.from_board(_Board.from_start_position())
-
-    visited_boards = set()
-    new_boards = {initial_board}
-
-    while new_boards:
-        board = new_boards.pop()
-        visited_boards.add(board)
-        for piece, move in board.potential_moves():
-            new_board = board.move(piece, move)
-            if new_board not in visited_boards:
-                new_boards.add(new_board)
-
-    total_boards = len(visited_boards)
-    solution_boards = sum(board.is_solved for board in visited_boards)
-    print(f"Possible board configurations are {total_boards}, of which {solution_boards} are solutions.")
 
 
-if __name__ == '__main__':
-    explore_states()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# def explore_states():
+#     initial_board = _Board.from_start_position()
+#     visited_boards = set()
+#     new_boards = {initial_board}
+
+#     while new_boards:
+#         board = new_boards.pop()
+#         visited_boards.add(board)
+#         for piece, move in board.potential_moves():
+#             new_board = board.move(piece, move)
+#             if new_board not in visited_boards:
+#                 new_boards.add(new_board)
+
+#     total_boards = len(visited_boards)
+#     solution_boards = sum(board.is_solved for board in visited_boards)
+#     print(f"Possible board configurations are {total_boards}, of which {solution_boards} are solutions.")
+
+
+# if __name__ == '__main__':
+#     explore_states()

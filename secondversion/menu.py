@@ -53,4 +53,3 @@ class Menu:
                     sys.exit()
 
         return None
-
