@@ -4,6 +4,10 @@ import pygame
 from utilities import *
 import time
 
+# <Michal> [importing the random library to allow to play random duck sounds]-----------------------
+import random
+# </Michal> ---------------------------------------------------------------------------------------
+
 # Define colors (RGB)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -12,6 +16,7 @@ BLUE = (0, 0, 255)
 GRAY = (200, 200, 200)
 
 # Define the playable area
+# <Michal> [experimenting with the playable area to fit the board, was : width 1000, height 800]-------------
 playable_width = 1000
 playable_height = 800
 playable_x = playable_width / 15
@@ -23,6 +28,8 @@ cols, rows = 5, 4
 cell_width = playable_width // cols
 cell_height = playable_height // rows
 
+# </Michal> ---------------------------------------------------------------------------
+
 class Game:
     def __init__(self):
         # Set window dimensions
@@ -30,8 +37,36 @@ class Game:
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Klotski Game")
 
+# <Michal> [loading images and sounds, playing music] -----------------------------------------------------
+        # Load the animated water frames
+        self.water_frames = [pygame.image.load(f'img/water_{i}.png').convert() for i in range(4)]
+        self.current_frame = 0  # Index for the current frame
+        self.frame_delay = 100  # Delay in milliseconds between frames
+        self.last_frame_update = pygame.time.get_ticks()  # Track time for frame updates
+
+        # Load the red duck image
+        self.red_duck_image = pygame.image.load('img/redduck.png').convert_alpha()  # Load the red duck image with alpha
+        self.red_duck_image = pygame.transform.scale(self.red_duck_image, (cell_width * 2, cell_height * 2))  # Scale to occupy 4 cells
+
+        # Load the small duck image
+        self.small_duck_image = pygame.image.load('img/smallduck.png').convert_alpha()
+        self.small_duck_image = pygame.transform.scale(self.small_duck_image, (cell_width * 1, cell_height * 1))
+
+        # Load sounds
+        self.quack_sounds = [pygame.mixer.Sound(f'audio/quack_{i}.wav') for i in range(10)]
+        self.sick_quack_sounds = [pygame.mixer.Sound(f'audio/sick_quack_{i}.wav') for i in range(10)]
+        self.swirl_sounds = [pygame.mixer.Sound(f'audio/swirl_{i}.wav') for i in range(25)]  # Load swirl sounds
+
+        # Load and play music
+        pygame.mixer.music.load('audio/duckmusic.mp3')  # Load the music file
+        pygame.mixer.music.play(-1)  # Play the music on loop (-1 means loop indefinitely)
+# </Michal> ---------------------------------------------------------------------
+
+# <Michal> [Added the game instance to facilitate the playing of sounds]--------------------
         # Initialize squares
-        self.red_square = RedSquare(grid_x=0, grid_y=1, size=cell_width * 2, color=RED)
+        self.red_square = RedSquare(grid_x=0, grid_y=1, size=cell_width * 2, color=RED, game=self)
+# </Michal>-------------------------------------------------------------------------------
+
         self.squares = self.create_yellow_squares()
 
         self.selected_square = None
@@ -39,24 +74,26 @@ class Game:
 
         self.move_count = 0  # Initialize move counter
 
+# <Michal> [adding the game=self reference to allow for the sound to play]------------------------------
     def create_yellow_squares(self):
         return [
-            YellowSquare(grid_x=0, grid_y=0, size=cell_width, color=YELLOW),
-            YellowSquare(grid_x=1, grid_y=0, size=cell_width, color=YELLOW),
-            YellowSquare(grid_x=2, grid_y=0, size=cell_width, color=YELLOW),
-            YellowSquare(grid_x=3, grid_y=0, size=cell_width, color=YELLOW),
-            YellowSquare(grid_x=4, grid_y=0, size=cell_width, color=YELLOW),
-            YellowSquare(grid_x=2, grid_y=1, size=cell_width, color=YELLOW),
-            YellowSquare(grid_x=2, grid_y=2, size=cell_width, color=YELLOW),
-            YellowSquare(grid_x=3, grid_y=1, size=cell_width, color=YELLOW),
-            YellowSquare(grid_x=3, grid_y=2, size=cell_width, color=YELLOW),
-            YellowSquare(grid_x=0, grid_y=3, size=cell_width, color=YELLOW),
-            YellowSquare(grid_x=1, grid_y=3, size=cell_width, color=YELLOW),
-            YellowSquare(grid_x=2, grid_y=3, size=cell_width, color=YELLOW),
-            YellowSquare(grid_x=3, grid_y=3, size=cell_width, color=YELLOW),
-            YellowSquare(grid_x=4, grid_y=3, size=cell_width, color=YELLOW),
+            YellowSquare(grid_x=0, grid_y=0, size=cell_width, color=YELLOW, game=self),
+            YellowSquare(grid_x=1, grid_y=0, size=cell_width, color=YELLOW, game=self),
+            YellowSquare(grid_x=2, grid_y=0, size=cell_width, color=YELLOW, game=self),
+            YellowSquare(grid_x=3, grid_y=0, size=cell_width, color=YELLOW, game=self),
+            YellowSquare(grid_x=4, grid_y=0, size=cell_width, color=YELLOW, game=self),
+            YellowSquare(grid_x=2, grid_y=1, size=cell_width, color=YELLOW, game=self),
+            YellowSquare(grid_x=2, grid_y=2, size=cell_width, color=YELLOW, game=self),
+            YellowSquare(grid_x=3, grid_y=1, size=cell_width, color=YELLOW, game=self),
+            YellowSquare(grid_x=3, grid_y=2, size=cell_width, color=YELLOW, game=self),
+            YellowSquare(grid_x=0, grid_y=3, size=cell_width, color=YELLOW, game=self),
+            YellowSquare(grid_x=1, grid_y=3, size=cell_width, color=YELLOW, game=self),
+            YellowSquare(grid_x=2, grid_y=3, size=cell_width, color=YELLOW, game=self),
+            YellowSquare(grid_x=3, grid_y=3, size=cell_width, color=YELLOW, game=self),
+            YellowSquare(grid_x=4, grid_y=3, size=cell_width, color=YELLOW, game=self),
         ]
-    
+
+    # </Michal> -----------------------------------------------------
     def get_board(self):
         # Create a board representation
         return Board(self.red_square, self.squares)  # Adjust based on your Board implementation
@@ -113,6 +150,15 @@ class Game:
                 self.move_count += 1  # Increment move counter
 
     def update(self):
+
+# <Michal> ---------------------------------------------------------------------
+        # Update the current frame based on the frame delay
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_frame_update > self.frame_delay:
+            self.current_frame = (self.current_frame + 1) % len(self.water_frames)  # Loop through frames
+            self.last_frame_update = current_time  # Reset the timer
+# </Michal> ---------------------------------------------------------------------
+
         # Check for completion condition
         target_positions = [(3, 1), (4, 1), (3, 2), (4, 2)]
         if all((self.red_square.grid_x + dx, self.red_square.grid_y + dy) in target_positions
@@ -122,23 +168,46 @@ class Game:
             sys.exit()
 
     def draw(self):
-        self.screen.fill(GRAY)
-        pygame.draw.rect(self.screen, WHITE, playable_area)
+        self.screen.fill(GRAY)  # Fill the background with gray
+        pygame.draw.rect(self.screen, WHITE, playable_area)  # Draw the white playable area
 
+# <Michal> [drawing images]-----------------------------------------------------
+        # Draw the animated water image on each grid cell
         for i in range(cols):
             for j in range(rows):
-                rect = pygame.Rect(playable_x + i * cell_width, playable_y + j * cell_height, cell_width, cell_height)
-                pygame.draw.rect(self.screen, BLUE, rect, 2)
+                # Calculate the position for each tile
+                tile_rect = pygame.Rect(playable_x + i * cell_width, playable_y + j * cell_height, cell_width,
+                                        cell_height)
 
-        self.red_square.draw(self.screen)
+                # Scale the water frame to the desired size (e.g., cell_width, cell_height)
+                scaled_water_frame = pygame.transform.scale(self.water_frames[self.current_frame],(cell_width, cell_height ))
+
+                self.screen.blit(scaled_water_frame, tile_rect.topleft)  # Draw the current frame
+
+        # Draw the red duck image occupying 4 cells
+        red_duck_x = self.red_square.grid_x  # Get the grid x position of the red square
+        red_duck_y = self.red_square.grid_y  # Get the grid y position of the red square
+        self.screen.blit(self.red_duck_image, (
+        playable_x + red_duck_x * cell_width, playable_y + red_duck_y * cell_height))  # Draw the red duck image
+
+
+# I removed the old method
+#        self.red_square.draw(self.screen)
+
+
+
+        # Draw the small duck images for yellow squares
         for square in self.squares:
-            square.draw(self.screen)
+            square.update_position()  # Ensure the position is updated
+            self.screen.blit(self.small_duck_image, (playable_x + square.grid_x * cell_width,
+                                                     playable_y + square.grid_y * cell_height))  # Draw the small duck image
 
+# </Michal> ---------------------------------------------------------------------
         # Draw the move counter
         self.draw_move_counter()
 
-        pygame.display.flip()
-        pygame.time.Clock().tick(60)
+        pygame.display.flip()  # Update the display
+        pygame.time.Clock().tick(60)  # Control the frame rate
 
 
     def draw_move_counter(self):
@@ -165,18 +234,26 @@ class Game:
             # Optionally, you can check for quit events to exit while visualizing
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+# <Michal> [stopping the music when quitting]----------------------------------------------
+                    pygame.mixer.music.stop()  # Stop the music
+# </Michal> ------------------------------------------------------------------------------
                     pygame.quit()
                     return
 
 # Class for the red square (occupies 4 cells)
+
+# <Michal> [adding the game parameter to allow for playing of sounds]-------------------------
 class RedSquare:
-    def __init__(self, grid_x, grid_y, size, color):
+    def __init__(self, grid_x, grid_y, size, color, game):
         self.grid_x = grid_x
         self.grid_y = grid_y
         self.size = size
         self.color = color
         self.rects = []  # Store 4 rectangles for 4 grid cells
         self.update_position()
+        self.game = game #Store the reference to the game instance
+
+# </Michal>--------------------------------------------------------------------------------
 
     def update_position(self):
         # Clear the existing rects
@@ -210,6 +287,20 @@ class RedSquare:
 
         self.update_position()
         moved = self.prevent_overlap(squares, prev_x, prev_y)
+
+# <Michal> [Added a sound played during movement]----------------------------------------------
+        # Play a random sick quack sound if the move was successful
+        if moved and (self.grid_x != prev_x or self.grid_y != prev_y):
+            # Play a random sick quack sound
+            random_sick_sound = random.choice(self.game.sick_quack_sounds)  # Access the sick quack sounds
+            random_sick_sound.play()
+
+            # Play a random swirl sound
+            random_swirl_sound = random.choice(self.game.swirl_sounds)
+            random_swirl_sound.play()
+
+            return True  # Return True if a valid move occurred
+# </Michal> -----------------------------------------------------------------------------------
         
         # Incrementa o contador de movimentos apenas se a posição mudou
         if moved and (self.grid_x != prev_x or self.grid_y != prev_y):
@@ -256,15 +347,19 @@ class RedSquare:
         return moves
 
 # Class for the yellow squares
+
+# <Michal> [Adding the game parameter to allow for the sound to play]-----------------------
 class YellowSquare:
-    def __init__(self, grid_x, grid_y, size, color):
+    def __init__(self, grid_x, grid_y, size, color, game):
         self.grid_x = grid_x
         self.grid_y = grid_y
         self.size = size
         self.color = color
         self.rect = pygame.Rect(0, 0, self.size, self.size)
         self.update_position()
+        self.game = game  # Store the reference to the Game instance
 
+# </Michal>---------------------------------------------------------------------------------
     def update_position(self):
         self.rect.x = playable_x + self.grid_x * cell_width
         self.rect.y = playable_y + self.grid_y * cell_height
@@ -284,7 +379,20 @@ class YellowSquare:
 
         self.update_position()
         moved = self.prevent_overlap(squares, red_square, prev_x, prev_y)
-        
+
+# <Michal> [Playing a sound when the yellow duck moves]---------------------------------------------------
+        # Play a random quack sound if the move was successful
+        if moved and (self.grid_x != prev_x or self.grid_y != prev_y):
+            # Play a random quack sound
+            random_sound = random.choice(self.game.quack_sounds)
+            random_sound.play()
+
+            # Play a random swirl sound
+            random_swirl_sound = random.choice(self.game.swirl_sounds)
+            random_swirl_sound.play()
+
+            return True  # Return True if a valid move occurred
+# </Michal> ----------------------------------------------------------------------------------------------
         # Incrementa o contador de movimentos apenas se a posição mudou
         if moved and (self.grid_x != prev_x or self.grid_y != prev_y):
             return True  # Retorna True se houve movimento válido

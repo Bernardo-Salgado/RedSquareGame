@@ -52,6 +52,12 @@ from solver import bfs_solver
 def main():
     pygame.init()
 
+# <Michal> [initialising mixer for playing audio]------------------------------------
+    # Initialize the mixer
+    pygame.mixer.init()
+
+# </Michal> -------------------------------------------------------------
+
     # Set window dimensions
     screen_width, screen_height = 1536, 864
     screen = pygame.display.set_mode((screen_width, screen_height))
