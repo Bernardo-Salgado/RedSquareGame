@@ -1,11 +1,9 @@
 import pygame
 import sys
 from secondversion.menu import Menu
-from game import Game, Position
+from game import Game
 from solver import Boardd
-from game import Board
 from solver import bfs_solver
-
 
 def main():
     pygame.init()
@@ -34,21 +32,21 @@ def main():
                             sys.exit()
                         game.handle_event(event)
 
-            if menu_action == "solve":
-                solution_moves = []
+            elif menu_action == "solve":
                 print("Solving...")
 
-                board_state = Boardd.from_board(Game.get_board(game))
+                # Assuming you have a method to get the current board state
+                board_state = Boardd.from_board(game.state)  # Adjust this if necessary
 
                 solution_moves = bfs_solver(board_state)
                 print(f"Moves found: {solution_moves}")
 
                 for move in solution_moves:
                     piece, position = move
-                    piece_index = game.get_piece_index(piece)
-                    direction = game.get_move_direction(piece.position, position)
+                    piece_index = game.get_piece_index(piece)  # You may need to implement this method
+                    direction = game.get_move_direction(piece.position, position)  # Implement this method
 
-                    game.move_piece(piece_index, direction)
+                    game.move_block(piece_index, direction)  # Adjust this if necessary
                     game.draw()
                     pygame.display.flip()
                     pygame.time.delay(500)
@@ -57,7 +55,6 @@ def main():
                 pass
 
         menu.draw()
-
 
 if __name__ == "__main__":
     main()
