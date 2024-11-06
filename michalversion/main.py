@@ -41,11 +41,13 @@ def main():
                 print(f"Moves found: {solution_moves}")
 
                 for move in solution_moves:
-                    piece, position = move
-                    piece_index = game.get_piece_index(piece)  # You may need to implement this method
-                    direction = game.get_move_direction(piece.position, position)  # Implement this method
+                    piece_index, position = move  # Unpack the move tuple
+                    block = game.state[piece_index]  # Get the Block object using the index
+                    direction = game.get_move_direction((block.grid_x, block.grid_y),
+                                                        position)  # Use the block's position
 
-                    game.move_block(piece_index, direction)  # Adjust this if necessary
+                    # Move the block using the block object instead of the index
+                    game.move_block(block, direction)  # Pass the block object directly
                     game.draw()
                     pygame.display.flip()
                     pygame.time.delay(500)

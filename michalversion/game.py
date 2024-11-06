@@ -104,6 +104,31 @@ class Game:
                 return block
         return None
 
+# [POST-SOLVER FUNCTIONS]------------------------------------------------------
+    def get_piece_index(self, piece):
+        for index, block in enumerate(self.state):
+            # Check if the block's position matches the piece's position
+            if (block.grid_x, block.grid_y) == piece:
+                return index
+        return None  # Return None if the piece is not found
+
+    def get_move_direction(self, start_position, end_position):
+        start_x, start_y = start_position
+        end_x, end_y = end_position
+
+        if start_x == end_x:
+            if start_y < end_y:
+                return 'down'  # Moving down
+            elif start_y > end_y:
+                return 'up'  # Moving up
+        elif start_y == end_y:
+            if start_x < end_x:
+                return 'right'  # Moving right
+            elif start_x > end_x:
+                return 'left'  # Moving left
+
+        return None  # Return None if the move is invalid
+# [/POST-SOLVER FUNCTIONS]-------------------------------------------------------------
     def handle_swipe(self, start_pos, end_pos):
         # Calculate the grid positions based on mouse coordinates
         start_grid_x = (start_pos[0] - playable_x) // cell_width
