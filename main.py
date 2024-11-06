@@ -1,6 +1,6 @@
 import pygame
 import sys
-from secondversion.menu import Menu
+from menu import Menu
 from game import Game
 from solver import Boardd
 from solver import bfs_solver
