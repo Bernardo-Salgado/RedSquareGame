@@ -35,9 +35,8 @@ def main():
             elif menu_action == "solve":
                 print("Solving...")
 
-                # Assuming you have a method to get the current board state
-                board_state = Boardd.from_board(game.state)  # Adjust this if necessary
-
+                # Assuming game is an instance of Game and game.state is a list of tuples
+                board_state = game.state  # Directly use the state if it's already in the correct format
                 solution_moves = bfs_solver(board_state)
                 print(f"Moves found: {solution_moves}")
 
