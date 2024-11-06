@@ -24,22 +24,31 @@ cell_height = playable_height // rows
 Position = namedtuple('Position', ['x', 'y'])
 
 class Block:
-    def __init__(self, grid_x, grid_y, size_x, size_y, color):
+    def __init__(self, grid_x, grid_y, size_x, size_y):
         self.grid_x = grid_x
         self.grid_y = grid_y
         self.size_x = size_x  # Width of the block
         self.size_y = size_y  # Height of the block
-        self.color = color
+        self.color = self.assign_color()  # Automatically assign color based on size
 
     def get_positions(self):
         return [(self.grid_x + dx, self.grid_y + dy) for dx in range(self.size_x) for dy in range(self.size_y)]
 
+    def assign_color(self):
+        # Assign color based on the size of the block using predefined constants
+        if self.size_x == 1 and self.size_y == 1:
+            return YELLOW  # Use the YELLOW constant for 1x1 blocks
+        elif self.size_x == 2 and self.size_y == 2:
+            return RED  # Use the RED constant for 2x2 blocks
+        else:
+            return GRAY  # Use the GRAY constant for other sizes
+
     def draw(self, surface):
-        for pos in self.get_positions():
-            rect = pygame.Rect(playable_x + pos[0] * cell_width, playable_y + pos[1] * cell_height,
-                               self.size_x * cell_width, self.size_y * cell_height)
-            pygame.draw.rect(surface, self.color, rect)
-            pygame.draw.rect(surface, (0, 0, 0), rect, 2)  # Draw border
+        # Calculate the rectangle for the block based on its grid position and size
+        rect = pygame.Rect(playable_x + self.grid_x * cell_width, playable_y + self.grid_y * cell_height,
+                           self.size_x * cell_width, self.size_y * cell_height)
+        pygame.draw.rect(surface, self.color, rect)
+        pygame.draw.rect(surface, (0, 0, 0), rect, 2)  # Draw border
 
 class Game:
     def __init__(self):
@@ -49,11 +58,10 @@ class Game:
         pygame.display.set_caption("Klotski Game")
 
         self.state = [
-            #Block(1, 0, 2, 2, RED),  # Red block (2x2)
-            Block(0, 0, 1, 1, YELLOW),  # Yellow block (1x1)
-            Block(1, 1, 1, 1, YELLOW),  # Another yellow block
-            Block(2, 1, 1, 1, YELLOW),  # Another yellow block
-            Block(3, 1, 1, 1, YELLOW),  # Another yellow block
+            Block(0, 0, 2, 2),  # Red block (2x2)
+            Block(3, 3, 1, 1),  # Yellow block (1x1)
+            Block(2, 1, 1, 1),  # Another yellow block
+            Block(3, 1, 1, 1),  # Another yellow block
         ]
 
         self.selected_block = None
@@ -89,9 +97,10 @@ class Game:
 
     def get_selected_block(self, mouse_pos):
         for block in self.state:
-            if any(pygame.Rect(playable_x + pos[0] * cell_width, playable_y + pos[1] * cell_height,
-                               block.size_x * cell_width, block.size_y * cell_height).collidepoint(mouse_pos)
-                   for pos in block.get_positions()):
+            # Create a rectangle for the block based on its grid position and size
+            rect = pygame.Rect(playable_x + block.grid_x * cell_width, playable_y + block.grid_y * cell_height,
+                               block.size_x * cell_width, block.size_y * cell_height)
+            if rect.collidepoint(mouse_pos):
                 return block
         return None
 
