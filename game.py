@@ -7,8 +7,9 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 GREEN = (0, 255, 0)
-BLUE = (0, 255, 255)
+BLUE = (0, 0, 255)
 GRAY = (200, 200, 200)
+BLACK = (0, 0, 0)
 
 # Define the playable area
 playable_width = 640   # 128 each block
@@ -22,16 +23,13 @@ cols, rows = 5, 4
 cell_width = playable_width // cols
 cell_height = playable_height // rows
 
-# Define a named tuple for positions
-#Position = namedtuple('Position', ['x', 'y'])
-
 class Block:
-    def __init__(self, grid_x, grid_y, size_x, size_y):
+    def __init__(self, grid_x, grid_y, size_x, size_y, color):
         self.grid_x = grid_x
         self.grid_y = grid_y
         self.size_x = size_x  # Width of the block
         self.size_y = size_y  # Height of the block
-        self.color = self.assign_color()  # Automatically assign color based on size
+        # self.color = self.assign_color()  # Automatically assign color based on size
 
     def get_positions(self):
         return [(self.grid_x + dx, self.grid_y + dy) for dx in range(self.size_x) for dy in range(self.size_y)]
@@ -44,17 +42,17 @@ class Block:
             return RED
         elif self.size_x == 2 and self.size_y == 1:
             return GREEN
-        elif self.size_x == 1 and self.size+y == 2:
+        elif self.size_x == 1 and self.size_y == 2:
             return BLUE
         else:
             return GRAY  # Use the GRAY constant for other sizes
 
-    def draw(self, surface):
-        # Calculate the rectangle for the block based on its grid position and size
-        rect = pygame.Rect(playable_x + self.grid_x * cell_width, playable_y + self.grid_y * cell_height,
-                           self.size_x * cell_width, self.size_y * cell_height)
-        pygame.draw.rect(surface, self.color, rect)
-        pygame.draw.rect(surface, (0, 0, 0), rect, 2)  # Draw border
+    # def draw(self, surface):
+    #     # Calculate the rectangle for the block based on its grid position and size
+    #     rect = pygame.Rect(playable_x + self.grid_x * cell_width, playable_y + self.grid_y * cell_height,
+    #                        self.size_x * cell_width, self.size_y * cell_height)
+    #     pygame.draw.rect(surface, self.color, rect)
+    #     pygame.draw.rect(surface, BLACK, rect, 2)  # Draw border
 
 class Game:
     def __init__(self):
@@ -66,8 +64,8 @@ class Game:
         self.state = [
             ((0, 0), (2, 2)),  # Block at (0, 0) with size 2x2 - game.stae[0] is the RED block
             ((1, 3), (1, 1)),  # Block at (1, 3) with size 1x1
-            ((4, 3), (1, 1)),  # Block at (4, 3) with size 1x1
-            ((3, 1), (1, 1)),  # Block at (3, 1) with size 1x1
+            ((4, 3), (2, 1)),  # Block at (4, 3) with size 1x1
+            ((3, 1), (1, 2)),  # Block at (3, 1) with size 1x1
         ]
 
         self.selected_block = None
@@ -264,13 +262,21 @@ class Game:
                 rect = pygame.Rect(playable_x + i * cell_width, playable_y + j * cell_height, cell_width, cell_height)
                 pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)  # Draw grid lines
 
-        # Draw all blocks in the game state
         for (pos, size) in self.state:
-            # Calculate the rectangle for the block based on its grid position and size
+
+            if size[0] == 1 and size[1] == 1:
+                color = YELLOW
+            elif size[0] == 2 and size[1] == 2:
+                color = RED
+            elif size[0] == 2 and size[1] == 1:
+                color = BLUE
+            elif size[0] == 1 and size[1] == 2:
+                color = GREEN
+  
             rect = pygame.Rect(playable_x + pos[0] * cell_width, playable_y + pos[1] * cell_height,
                                size[0] * cell_width, size[1] * cell_height)
-            pygame.draw.rect(self.screen, (255, 0, 0) if size == (2, 2) else (255, 255, 0), rect)  # Color based on size
-            pygame.draw.rect(self.screen, (0, 0, 0), rect, 2)  # Draw border
+            pygame.draw.rect(self.screen, color, rect)  # Color based on size
+            pygame.draw.rect(self.screen, BLACK, rect, 2)  # Draw border
 
         # Draw the move counter
         self.draw_move_counter()
