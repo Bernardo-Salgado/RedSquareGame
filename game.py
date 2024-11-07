@@ -6,6 +6,8 @@ from collections import namedtuple
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 255, 255)
 GRAY = (200, 200, 200)
 
 # Define the playable area
@@ -37,9 +39,13 @@ class Block:
     def assign_color(self):
         # Assign color based on the size of the block using predefined constants
         if self.size_x == 1 and self.size_y == 1:
-            return YELLOW  # Use the YELLOW constant for 1x1 blocks
+            return YELLOW
         elif self.size_x == 2 and self.size_y == 2:
-            return RED  # Use the RED constant for 2x2 blocks
+            return RED
+        elif self.size_x == 2 and self.size_y == 1:
+            return GREEN
+        elif self.size_x == 1 and self.size+y == 2:
+            return BLUE
         else:
             return GRAY  # Use the GRAY constant for other sizes
 
