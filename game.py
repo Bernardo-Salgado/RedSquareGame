@@ -21,7 +21,7 @@ cell_width = playable_width // cols
 cell_height = playable_height // rows
 
 # Define a named tuple for positions
-Position = namedtuple('Position', ['x', 'y'])
+#Position = namedtuple('Position', ['x', 'y'])
 
 class Block:
     def __init__(self, grid_x, grid_y, size_x, size_y):
@@ -58,7 +58,7 @@ class Game:
         pygame.display.set_caption("Klotski Game")
 
         self.state = [
-            ((1, 1), (2, 2)),  # Block at (1, 1) with size 2x2
+            ((0, 0), (2, 2)),  # Block at (0, 0) with size 2x2 - game.stae[0] is the RED block
             ((1, 3), (1, 1)),  # Block at (1, 3) with size 1x1
             ((4, 3), (1, 1)),  # Block at (4, 3) with size 1x1
             ((3, 1), (1, 1)),  # Block at (3, 1) with size 1x1
