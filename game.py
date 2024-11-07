@@ -58,10 +58,10 @@ class Game:
         pygame.display.set_caption("Klotski Game")
 
         self.state = [
-            Block(0, 0, 2, 2),  # Red block (2x2)
-            Block(3, 3, 1, 1),  # Yellow block (1x1)
-            Block(2, 1, 1, 1),  # Another yellow block
-            Block(3, 1, 1, 1),  # Another yellow block
+            ((1, 1), (2, 2)),  # Block at (1, 1) with size 2x2
+            #((1, 3), (1, 1)),  # Block at (1, 3) with size 1x1
+            #((4, 3), (1, 1)),  # Block at (4, 3) with size 1x1
+            #((3, 1), (1, 1)),  # Block at (3, 1) with size 1x1
         ]
 
         self.selected_block = None
@@ -96,19 +96,20 @@ class Game:
             self.start_pos = None
 
     def get_selected_block(self, mouse_pos):
-        for block in self.state:
+        for index, (pos, size) in enumerate(self.state):
             # Create a rectangle for the block based on its grid position and size
-            rect = pygame.Rect(playable_x + block.grid_x * cell_width, playable_y + block.grid_y * cell_height,
-                               block.size_x * cell_width, block.size_y * cell_height)
+            rect = pygame.Rect(playable_x + pos[0] * cell_width, playable_y + pos[1] * cell_height,
+                               size[0] * cell_width, size[1] * cell_height)
             if rect.collidepoint(mouse_pos):
-                return block
+                return index  # Return the index of the selected block
         return None
+
 
 # [POST-SOLVER FUNCTIONS]------------------------------------------------------
     def get_piece_index(self, piece):
-        for index, block in enumerate(self.state):
+        for index, (pos, size) in enumerate(self.state):
             # Check if the block's position matches the piece's position
-            if (block.grid_x, block.grid_y) == piece:
+            if pos == piece:  # Compare the position directly
                 return index
         return None  # Return None if the piece is not found
 
@@ -156,56 +157,90 @@ class Game:
             else:
                 direction = None
 
-        if direction and self.selected_block:
-            moved = self.move_block(self.selected_block, direction)
+        if direction and self.selected_block is not None:
+            # Retrieve the block data using the selected block index
+            block_data = self.state[self.selected_block]
 
-            if moved:  # Only increment if a move was successful
-                self.move_count += 1  # Increment move counter
-                self.start_pos = end_pos  # Update start_pos to the new position
+            # Check if the new position is within the grid boundaries
+            new_pos = block_data[0]  # Current position
+            if direction == 'left':
+                new_pos = (new_pos[0] - 1, new_pos[1])
+            elif direction == 'right':
+                new_pos = (new_pos[0] + 1, new_pos[1])
+            elif direction == 'up':
+                new_pos = (new_pos[0], new_pos[1] - 1)
+            elif direction == 'down':
+                new_pos = (new_pos[0], new_pos[1] + 1)
+
+            # Check if the new position is within the grid boundaries
+            if 0 <= new_pos[0] < cols and 0 <= new_pos[1] < rows:
+                moved = self.move_block(block_data, direction)  # Pass the block data instead of the index
+
+                if moved:  # Only increment if a move was successful
+                    self.move_count += 1  # Increment move counter
+                    self.start_pos = end_pos  # Update start_pos to the new position
 
     def move_block(self, block, direction):
-        prev_x, prev_y = block.grid_x, block.grid_y
+        prev_pos = block[0]  # Get the previous position
+        size = block[1]  # Get the size of the block
 
-        if direction == 'left' and block.grid_x > 0:
-            block.grid_x -= 1
-        elif direction == 'right' and block.grid_x < cols - block.size_x:
-            block.grid_x += 1
-        elif direction == 'up' and block.grid_y > 0:
-            block.grid_y -= 1
-        elif direction == 'down' and block.grid_y < rows - block.size_y:
-            block.grid_y += 1
+        # Calculate the new position based on the direction
+        if direction == 'left':
+            new_pos = (prev_pos[0] - 1, prev_pos[1])
+        elif direction == 'right':
+            new_pos = (prev_pos[0] + 1, prev_pos[1])
+        elif direction == 'up':
+            new_pos = (prev_pos[0], prev_pos[1] - 1)
+        elif direction == 'down':
+            new_pos = (prev_pos[0], prev_pos[1] + 1)
+        else:
+            return False  # Invalid move
 
-        # Check for collisions with other blocks
-        if self.check_collisions(block):
-            # If there is a collision, revert the position
-            block.grid_x, block.grid_y = prev_x, prev_y
+        # Update the block's position
+        new_block = (new_pos, size)
+
+        # Check for collisions
+        if self.check_collisions(new_block, self.get_piece_index(prev_pos)):
             print(f"Move {direction} blocked by collision.")
             return False  # Move was not successful
 
-        print(f"Moved {direction} to ({block.grid_x}, {block.grid_y})")
+        # Update the state with the new position
+        block_index = self.get_piece_index(prev_pos)
+        self.state[block_index] = new_block
         return True  # Move was successful
 
-    def check_collisions(self, block):
+    def check_collisions(self, block, block_index):
         occupied_positions = set()
 
         # Collect positions of all blocks except the one being moved
-        for b in self.state:
-            if b != block:  # Exclude the block being moved
-                occupied_positions.update(b.get_positions())
+        for index, b in enumerate(self.state):
+            if index != block_index:  # Exclude the block being moved
+                pos, size = b
+                for dx in range(size[0]):
+                    for dy in range(size[1]):
+                        occupied_positions.add((pos[0] + dx, pos[1] + dy))
 
         # Check if the block's new positions collide with occupied positions
-        for pos in block.get_positions():
-            if pos in occupied_positions:
-                return True  # Collision detected
+        block_pos, block_size = block
+        for dx in range(block_size[0]):
+            for dy in range(block_size[1]):
+                if (block_pos[0] + dx, block_pos[1] + dy) in occupied_positions:
+                    print(f"Collision detected at {block_pos[0] + dx}, {block_pos[1] + dy}")
+                    return True  # Collision detected
         return False  # No collision
 
     def update(self):
         # Check for completion condition
-        target_positions = [(3, 1), (4, 1), (3, 2), (4, 2)]
+        target_positions = {(3, 1), (4, 1), (3, 2), (4, 2)}
 
-        # Get the positions of the red block
-        red_block = self.state[0]  # Assuming the red block is always the first in the state list
-        red_positions = red_block.get_positions()
+        # Get the positions of the red block (assuming it's the first block in the state)
+        red_block_position = self.state[0][0]  # This is now a tuple (grid_x, grid_y)
+
+        # Get the positions occupied by the red block (2x2)
+        red_positions = {(red_block_position[0], red_block_position[1]),
+                         (red_block_position[0] + 1, red_block_position[1]),
+                         (red_block_position[0], red_block_position[1] + 1),
+                         (red_block_position[0] + 1, red_block_position[1] + 1)}
 
         # Check if all positions of the red block are in the target positions
         if all(pos in target_positions for pos in red_positions):
@@ -224,8 +259,12 @@ class Game:
                 pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)  # Draw grid lines
 
         # Draw all blocks in the game state
-        for block in self.state:
-            block.draw(self.screen)
+        for (pos, size) in self.state:
+            # Calculate the rectangle for the block based on its grid position and size
+            rect = pygame.Rect(playable_x + pos[0] * cell_width, playable_y + pos[1] * cell_height,
+                               size[0] * cell_width, size[1] * cell_height)
+            pygame.draw.rect(self.screen, (255, 0, 0) if size == (2, 2) else (255, 255, 0), rect)  # Color based on size
+            pygame.draw.rect(self.screen, (0, 0, 0), rect, 2)  # Draw border
 
         # Draw the move counter
         self.draw_move_counter()

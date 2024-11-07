@@ -2,37 +2,72 @@ from game import Game
 
 class Boardd:
     def __init__(self, state):
-        # state is now a tuple of positions (grid_x, grid_y)
-        self.state = state  # No need to convert to tuple again
+        self.state = state  # state is now a list of ((x, y), (width, height))
 
     def move(self, block_index, new_position):
+        print(f"Current state before move: {self.state}")
+        print(f"MOVE: Moving block {block_index} to new position {new_position}")
         new_state = list(self.state)
-        new_state[block_index] = new_position  # Update the position of the block
-        return Boardd(tuple(new_state))  # Return a new Boardd with a tuple state
+        size = new_state[block_index][1]  # Get the size of the block
+        new_state[block_index] = (new_position, size)  # Ensure new_position is a tuple
+        print(f"New state after move: {new_state}")
+        return Boardd(new_state)
 
     def potential_moves(self):
         moves = []
         empty_positions = self.empty_positions()
-        for index, position in enumerate(self.state):
-            for new_position in self.get_possible_moves(position, empty_positions):
-                moves.append((index, new_position))  # Append the block index and new position
+        for index, (position, size) in enumerate(self.state):
+            possible_moves = self.get_possible_moves(position, size, empty_positions, 4, 5)
+            for new_position in possible_moves:
+                moves.append((index, new_position))  # Include the block index with the new position
         return moves
 
-    def get_possible_moves(self, position, empty_positions):
-        row, col = position
+    def get_possible_moves(self, position, size, empty_positions, rows, cols):
+        # Correctly unpack the position, where position is actually (row, col) and size is (width, height)
+        # The position might be wrapped in another tuple (index, (row, col)), so we need to unpack accordingly.
+        if isinstance(position, tuple) and len(position) == 2 and isinstance(position[1], tuple):
+            _, (row, col) = position  # Unpack (index, (row, col))
+        else:
+            row, col = position  # Otherwise, just unpack the position as (row, col)
+
+        print(f"Getting possible moves for block at position: ({row}, {col}) with size: {size}")
+
         possible_moves = []
         directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]  # Right, Left, Down, Up
 
+        # Loop over possible movement directions
         for dr, dc in directions:
-            new_row, new_col = row + dr, col + dc
-            if (new_row, new_col) in empty_positions:
-                possible_moves.append((new_row, new_col))
+            print(f"Trying direction: (dr={dr}, dc={dc})")
 
+            # Calculate the new candidate position
+            new_row, new_col = row + dr, col + dc
+            print(f"New position candidate: ({new_row}, {new_col})")
+
+            # Check if the new position is within the grid boundaries
+            if 0 <= new_row < rows and 0 <= new_col < cols:
+                print(f"Position ({new_row}, {new_col}) is within grid bounds")
+
+                # Check if the block can actually fit in the new position based on its size
+                if dr == 0:  # Horizontal move
+                    print(f"Checking horizontal move to position ({new_row}, {new_col})")
+                    if (new_row, new_col + size[0] - 1) in empty_positions:
+                        print(f"Move valid: the block fits horizontally")
+                        possible_moves.append((new_row, new_col))
+                elif dc == 0:  # Vertical move
+                    print(f"Checking vertical move to position ({new_row}, {new_col})")
+                    if (new_row + size[1] - 1, new_col) in empty_positions:
+                        print(f"Move valid: the block fits vertically")
+                        possible_moves.append((new_row, new_col))
+
+            else:
+                print(f"Position ({new_row}, {new_col}) is outside grid bounds")
+
+        print(f"Possible moves for block at position ({row}, {col}): {possible_moves}")
         return possible_moves
 
     def empty_positions(self):
         occupied_positions = set(self.state)
-        all_positions = {(r, c) for r in range(4) for c in range(5)}  # Assuming a 4x5 grid
+        all_positions = {(r, c) for r in range(5) for c in range(4)}  # Assuming a 5x4 grid
         return list(all_positions - occupied_positions)
 
     def __hash__(self):
@@ -46,24 +81,18 @@ class Boardd:
         return cls(state)  # Directly accept the state
 
     def is_solved(self):
-        # Define the target positions for the red block (2x2)
-        target_positions = {(3, 1), (4, 1), (3, 2), (4, 2)}  # Adjust based on your winning condition
+        # Define the target position for the red block (2x2)
+        target_position = (0, (3,1)) # Adjust based on your winning condition
 
-        # Get the positions of the red block (assuming it's the first block in the state)
-        red_block_position = self.state[0]  # This is now a tuple (grid_x, grid_y)
+        #DEBUG
+        print(f"This is the state: {self.state}")
+        print(f"This is the state of red block: {self.state[0][0]}")
 
-        # Get the positions occupied by the red block (2x2)
-        red_positions = {(red_block_position[0], red_block_position[1]),
-                         (red_block_position[0] + 1, red_block_position[1]),
-                         (red_block_position[0], red_block_position[1] + 1),
-                         (red_block_position[0] + 1, red_block_position[1] + 1)}
-
-        # Check if all positions of the red block are in the target positions
-        return red_positions == target_positions
+        return self.state[0][0] == target_position
 
 def bfs_solver(game_state):
-    # Extract positions from Block objects
-    initial_state = [(block.grid_x, block.grid_y) for block in game_state]
+    # Directly use the game_state as it is already in the correct format
+    initial_state = game_state  # This should be a list of tuples: [((x, y), (width, height)), ...]
     start_board = Boardd(initial_state)
 
     visited_boards = set()
@@ -71,6 +100,7 @@ def bfs_solver(game_state):
     new_boards_set = {start_board}
     transitions = {}
     board = None
+    i = 0
 
     while new_boards:
         board = new_boards.pop(0)
@@ -81,13 +111,14 @@ def bfs_solver(game_state):
 
         visited_boards.add(board)
 
-        for block_index, new_position in board.potential_moves():
-            new_board = board.move(block_index, new_position)
-
-            if new_board not in visited_boards and new_board not in new_boards_set:
-                new_boards.append(new_board)
-                new_boards_set.add(new_board)
-                transitions[new_board] = (board, block_index, new_position)
+        for block_index in range(len(board.state)):  # Iterate over each block
+            for new_position in board.potential_moves():
+                print(f"Attempting to move block {block_index} to new position {new_position}")
+                new_board = board.move(block_index, new_position)  # Use block_index correctly
+                if new_board not in visited_boards and new_board not in new_boards_set:
+                    new_boards.append(new_board)
+                    new_boards_set.add(new_board)
+                    transitions[new_board] = (board, block_index, new_position)
 
     # Backtrack to construct the solution path
     moves_taken = []
@@ -95,5 +126,11 @@ def bfs_solver(game_state):
         board, block_index, new_position = transitions[board]
         moves_taken.insert(0, (block_index, new_position))
 
-    print("Moves found:", moves_taken)
-    return moves_taken
+    print(f"moves taken: {moves_taken}")
+
+    # Now, we create the formatted_moves list using list comprehension
+    formatted_moves = [(block_index, new_position) for block_index, (empty_position, new_position) in moves_taken]
+
+    print(f"formatted moves: {formatted_moves}")
+    return formatted_moves
+

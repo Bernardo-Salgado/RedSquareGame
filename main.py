@@ -35,22 +35,25 @@ def main():
             elif menu_action == "solve":
                 print("Solving...")
 
-                # Assuming game is an instance of Game and game.state is a list of tuples
-                board_state = game.state  # Directly use the state if it's already in the correct format
+                # Directly use the game.state as it is now a list of tuples: [((x, y), (width, height)), ...]
+                board_state = game.state  # This is already in the correct format
+
+                # Solve the puzzle using the BFS solver
                 solution_moves = bfs_solver(board_state)
-                print(f"Moves found: {solution_moves}")
 
                 for move in solution_moves:
-                    piece_index, position = move  # Unpack the move tuple
-                    block = game.state[piece_index]  # Get the Block object using the index
-                    direction = game.get_move_direction((block.grid_x, block.grid_y),
-                                                        position)  # Use the block's position
+                    piece_index, new_position = move  # Unpack the move tuple
+                    current_position, size = board_state[piece_index]  # Get the current position and size
 
-                    # Move the block using the block object instead of the index
-                    game.move_block(block, direction)  # Pass the block object directly
-                    game.draw()
-                    pygame.display.flip()
-                    pygame.time.delay(500)
+                    # Determine the direction of movement
+                    direction = game.get_move_direction(current_position, new_position)  # Use the current position
+
+                    # Move the block using the new position and direction
+                    moved = game.move_block((new_position, size), direction)  # Pass the new position, size, and direction
+                    if moved:
+                        game.draw()  # Redraw the game state
+                        pygame.display.flip()  # Update the display
+                        pygame.time.delay(500)  # Delay for visual effect
 
             elif menu_action is None:
                 pass
