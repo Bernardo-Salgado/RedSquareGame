@@ -59,9 +59,9 @@ class Game:
 
         self.state = [
             ((1, 1), (2, 2)),  # Block at (1, 1) with size 2x2
-            #((1, 3), (1, 1)),  # Block at (1, 3) with size 1x1
-            #((4, 3), (1, 1)),  # Block at (4, 3) with size 1x1
-            #((3, 1), (1, 1)),  # Block at (3, 1) with size 1x1
+            ((1, 3), (1, 1)),  # Block at (1, 3) with size 1x1
+            ((4, 3), (1, 1)),  # Block at (4, 3) with size 1x1
+            ((3, 1), (1, 1)),  # Block at (3, 1) with size 1x1
         ]
 
         self.selected_block = None

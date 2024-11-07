@@ -49,7 +49,8 @@ def main():
                     direction = game.get_move_direction(current_position, new_position)  # Use the current position
 
                     # Move the block using the new position and direction
-                    moved = game.move_block((new_position, size), direction)  # Pass the new position, size, and direction
+                    current_position, block_size = board_state[piece_index]  # Get the current position and size
+                    moved = game.move_block((current_position, block_size), direction)  # Pass the position, size, and direction
                     if moved:
                         game.draw()  # Redraw the game state
                         pygame.display.flip()  # Update the display
