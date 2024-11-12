@@ -29,10 +29,9 @@ def main():
             elif menu_action == "solve":
                 print('Solving...')
                 # Initialize the game and the solver
-                game = Game()
                 solver = Solver(game)
                 # Run the BFS solver to find the solution path
-                solver.bfs()
+                moves = solver.bfs()
 
             elif menu_action is None:
                 pass

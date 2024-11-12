@@ -62,13 +62,15 @@ class Game:
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Klotski Game")
 
-        self.state = [
-            Block(0, 0, 2, 2), # Red block (2x2)
-            Block(1, 2, 1, 1), # Yellow block (1x1)
-            Block(4, 3, 1, 1), # Another yellow block
-            Block(3, 1, 1, 1), # Another yellow block
+        # Initial state of the game
+        self.initial_state = [
+            Block(0, 0, 2, 2),  # Red block (2x2)
+            Block(1, 2, 1, 1),  # Yellow block (1x1)
+            Block(4, 3, 1, 1),  # Another yellow block
+            Block(3, 1, 1, 1),  # Another yellow block
         ]
-
+        # The current state (can change as blocks move)
+        self.state = list(self.initial_state)
         self.selected_block = None
         self.start_pos = None
         self.move_count = 0 # Moves counter
@@ -208,7 +210,6 @@ class Game:
         font = pygame.font.SysFont(None, 40)
         move_text = font.render(f'Moves: {self.move_count}', True, (0, 0, 0))
         self.screen.blit(move_text, (self.screen_width - 150, 20))
-
 
 if __name__ == "__main__":
     game = Game()
