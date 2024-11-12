@@ -1,111 +1,101 @@
-from game import Game
+from collections import deque
+from game import Game, Block
 
-class Boardd:
-    def __init__(self, state):
-        # state is now a tuple of positions (grid_x, grid_y)
-        self.state = state  # No need to convert to tuple again
+class Solver:
+    def __init__(self, game, cols, rows):
+        self.game = game
+        self.cols = cols
+        self.rows = rows
+        self.initial_state = game.state
+        self.target_positions = [(3, 1), (4, 1), (3, 2), (4, 2)]
 
-    def move(self, block_index, new_position):
-        new_state = list(self.state)
-        new_state[block_index] = new_position  # Update the position of the block
-        return Boardd(tuple(new_state))  # Return a new Boardd with a tuple state
+    def bfs(self):
+        """Performs BFS to find the shortest path to the goal state and prints each step."""
+        initial_state_tuple = self.state_to_tuple(self.initial_state)
 
-    def potential_moves(self):
-        moves = []
-        empty_positions = self.empty_positions()
-        for index, position in enumerate(self.state):
-            for new_position in self.get_possible_moves(position, empty_positions):
-                moves.append((index, new_position))  # Append the block index and new position
-        return moves
+        if self.is_goal_state(self.initial_state):
+            print("Goal reached with 0 moves.")
+            return
 
-    def get_possible_moves(self, position, empty_positions):
-        row, col = position
-        possible_moves = []
-        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]  # Right, Left, Down, Up
+        visited = set([initial_state_tuple])
+        queue = deque([(self.initial_state, [])])  # Queue stores state and path
 
-        for dr, dc in directions:
-            new_row, new_col = row + dr, col + dc
-            if (new_row, new_col) in empty_positions:
-                possible_moves.append((new_row, new_col))
+        while queue:
+            current_state, path = queue.popleft()
 
-        return possible_moves
+            for block in current_state:
+                for direction in ['left', 'right', 'up', 'down']:
+                    new_state = self.move_block(block, direction, current_state)
+                    if new_state:
+                        state_tuple = self.state_to_tuple(new_state)
+                        if state_tuple not in visited:
+                            visited.add(state_tuple)
+                            new_path = path + [new_state]
 
-    def empty_positions(self):
-        occupied_positions = set(self.state)
-        all_positions = {(r, c) for r in range(5) for c in range(4)}  # Assuming a 5x4 grid
-        return list(all_positions - occupied_positions)
+                            if self.is_goal_state(new_state):
+                                print("Solution found!")
+                                self.print_solution_steps(new_path)
+                                print(f"Number of moves: {len(new_path)}")  # Display the move count
+                                return
 
-    def __hash__(self):
-        return hash(frozenset(self.state))
+                            queue.append((new_state, new_path))
 
-    def __eq__(self, other):
-        return hash(self) == hash(other)
+        print("No solution found.")
 
-    @classmethod
-    def from_board(cls, state):
-        return cls(state)  # Directly accept the state
+    def print_solution_steps(self, solution_path):
+        """Prints each state in the solution path."""
+        for step, state in enumerate(solution_path, start=1):
+            print(f"Step {step}:")
+            for block in state:
+                print(f"Block at ({block.grid_x}, {block.grid_y}) with size ({block.size_x}, {block.size_y})")
+            print("-" * 30)
 
-    def is_solved(self):
-        # Define the target positions for the red block (2x2)
-        target_positions = {(3, 1), (4, 1), (3, 2), (4, 2)}  # Adjust based on your winning condition
+    def move_block(self, block, direction, current_state):
+        """Moves a block in a specific direction if it's valid."""
+        cloned_block = Block(block.grid_x, block.grid_y, block.size_x, block.size_y)
+        new_state = [Block(b.grid_x, b.grid_y, b.size_x, b.size_y) for b in current_state]
 
-        # Get the positions of the red block (assuming it's the first block in the state)
-        red_block_position = self.state[0]  # This is now a tuple (grid_x, grid_y)
+        if direction == 'left' and cloned_block.grid_x > 0:
+            cloned_block.grid_x -= 1
+        elif direction == 'right' and cloned_block.grid_x < self.cols - cloned_block.size_x:
+            cloned_block.grid_x += 1
+        elif direction == 'up' and cloned_block.grid_y > 0:
+            cloned_block.grid_y -= 1
+        elif direction == 'down' and cloned_block.grid_y < self.rows - cloned_block.size_y:
+            cloned_block.grid_y += 1
+        else:
+            return False
 
-        # Get the positions occupied by the red block (2x2)
-        red_positions = {(red_block_position[0], red_block_position[1]),
-                         (red_block_position[0] + 1, red_block_position[1]),
-                         (red_block_position[0], red_block_position[1] + 1),
-                         (red_block_position[0] + 1, red_block_position[1] + 1)}
+        for idx, b in enumerate(new_state):
+            if b.grid_x == block.grid_x and b.grid_y == block.grid_y:
+                new_state[idx] = cloned_block
+                break
 
-        # Check if all positions of the red block are in the target positions
-        return red_positions == target_positions
+        if self.check_collisions(cloned_block, new_state):
+            return False
 
-def bfs_solver(game_state):
-    # Extract positions from Block objects
-    initial_state = [(block.grid_x, block.grid_y) for block in game_state]
-    start_board = Boardd(initial_state)
-    i = 0
+        return new_state
 
-    visited_boards = set()
-    new_boards = [start_board]
-    new_boards_set = {start_board}
-    transitions = {}
-    board = None
+    def check_collisions(self, block, current_state):
+        """Checks if a block collides with any other blocks."""
+        occupied_positions = set()
+        for b in current_state:
+            if b != block:
+                occupied_positions.update(b.get_positions())
+        return any(pos in occupied_positions for pos in block.get_positions())
 
-    while new_boards:
-        board = new_boards.pop(0)
-        new_boards_set.remove(board)
+    def is_goal_state(self, state):
+        """Checks if the current state is the goal state."""
+        red_block = state[0]  # Assuming red block is the first block
+        if all(pos in self.target_positions for pos in red_block.get_positions()):
+            print('Solved')
+        return all(pos in self.target_positions for pos in red_block.get_positions())
 
-        if board.is_solved():
-            break
-        if i == 0:
-            print(board.state)
-        visited_boards.add(board)
+    def state_to_tuple(self, state):
+        """Converts the current state to a tuple for immutability."""
+        return tuple(sorted((block.grid_x, block.grid_y, block.size_x, block.size_y) for block in state))
 
-        for block_index, new_position in board.potential_moves():
-            new_board = board.move(block_index, new_position)
-            if i <= 1:
-                print(i)
-                print("potential moves:")
-                print(board.potential_moves())
-                print("new board state")
-                print(new_board.state)
-                i += 1
-#            for piece in new_board:
-#                print(piece)
-
-            if new_board not in visited_boards and new_board not in new_boards_set:
-                new_boards.append(new_board)
-                new_boards_set.add(new_board)
-                transitions[new_board] = (board, block_index, new_position)
-
-    # Backtrack to construct the solution path
-    moves_taken = []
-    while board != start_board:
-        board, block_index, new_position = transitions[board]
-        moves_taken.insert(0, (block_index, new_position))
-
-#    print("Moves found:", moves_taken)
-    print(f"moves taken: {moves_taken}")
-    return moves_taken
+    def print_solution(self, path):
+        """Prints the sequence of moves that leads to the solution."""
+        for step, (block, direction) in enumerate(path):
+            print(f"Move {step + 1}: Move block at ({block.grid_x}, {block.grid_y}) {direction}")
