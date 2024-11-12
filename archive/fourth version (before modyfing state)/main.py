@@ -23,13 +23,14 @@ def main():
 
             menu_action = menu.handle_event(event)
             if menu_action == "start":
+                # Run the game (player solver)
                 game.run()
 
             elif menu_action == "solve":
                 print('Solving...')
                 # Initialize the game and the solver
                 game = Game()
-                solver = Solver(game, cols=5, rows=4)  # Pass cols and rows here
+                solver = Solver(game)
                 # Run the BFS solver to find the solution path
                 solver.bfs()
 
@@ -37,7 +38,6 @@ def main():
                 pass
 
         menu.draw()
-
 
 if __name__ == "__main__":
     main()
