@@ -6,6 +6,7 @@ from solver import Boardd
 from solver import bfs_solver
 
 def main():
+
     pygame.init()
 
     screen_width, screen_height = 1536, 864
