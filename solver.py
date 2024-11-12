@@ -1,120 +1,303 @@
-from game import Game
+from collections import deque
+from game import Game, Block
+import pygame
+import sys
+import heapq
 
-class Boardd:
-    def __init__(self, state):
-        self.state = state  # state is now a list of ((x, y), (width, height))
+cols, rows = 5, 4 # Grid size
 
-    def move(self, block_index, new_position):
-        #print(f"Current state before move: {self.state}")
-        #print(f"MOVE: Moving block {block_index} to new position {new_position}")
-        new_state = list(self.state)
-        size = new_state[block_index][1]  # Get the size of the block
-        new_state[block_index] = (new_position, size)  # Ensure new_position is a tuple
-        #print(f"New state after move: {new_state}")
-        return Boardd(new_state)
-
-    def potential_moves(self):
-        moves = []
-        empty_positions = self.empty_positions()
-        for (grid_x, grid_y), (size_x, size_y) in enumerate(self.state):
-            possible_moves = self.get_possible_moves(grid_x, grid_y, size_x,size_y, empty_positions)
-            for new_position in possible_moves:
-                moves.append((index, new_position))  # Include the block index with the new position
-        return moves
-
-    def get_possible_moves(self, grid_x, grid_y, size_x, size_y, empty_positions):
-        # Correctly unpack the position, where position is actually (row, col) and size is (width, height)
-        # The position might be wrapped in another tuple (index, (row, col)), so we need to unpack accordingly.
+class Solver:
+    def __init__(self, game):
+        self.game = game
+        self.initial_state = game.state
+        # Define goal positions for the red block
+        self.target_positions = [(3, 1), (4, 1), (3, 2), (4, 2)]
 
 
-        #print(f"Getting possible moves for block at position: ({row}, {col}) with size: {size}")
+    # Perform BFS to find the shortest path to the goal state
+    def bfs(self):
+        # Initialize with the initial state as the starting path
+        initial_state_tuple = self.state_to_tuple(self.initial_state) # Tuple structure ((grid_x1, grid_y1, size_x1, size_y1),...,(grid_xn, grid_yn, size_xn, size_yn))
+        initial_path = [self.initial_state]
 
-        possible_moves = []
-        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]  # Right, Left, Down, Up
+        # Early check if the initial state is the goal
+        if self.is_goal_state(self.initial_state):
+            print("Goal reached with 0 moves.")
+            return []
 
-        #if(size_x == 2 and size_y == 2):
-         #   #LEFT
-          #  if(grid_x - 1, grid_y) in empty_positions
+        visited = set([initial_state_tuple]) # Set initial state as visited
+        queue = deque([(self.initial_state, initial_path)]) # Queue stores state and path
+
+        while queue:
+            # Take current state and the path
+            current_state, path = queue.popleft()
+            # Check possible moves for each block
+            for block in current_state:
+                for direction in ['left', 'right', 'up', 'down']:
+                    new_state = self.move_block(block, direction, current_state)
+                    # Checks the move
+                    if new_state:
+                        state_tuple = self.state_to_tuple(new_state)
+                        # Checks if visited
+                        if state_tuple not in visited:
+                            visited.add(state_tuple)
+                            new_path = path + [new_state]
+                            # Checks the win status
+                            if self.is_goal_state(new_state):
+                                # Prints solution step by step
+                                self.print_solution(new_path)
+                                print(f"Solution found in {len(new_path) - 1} moves")
+                                # Animates solution step by step
+                                self.animate_solution(new_path)
+                                return new_path
+                            # Adds new state and the path to the queue
+                            queue.append((new_state, new_path))
+        print("No solution found.")
+        return []
 
 
+    # Perform DFS to find the shortest path to the goal state with a depth limit
+    def dfs(self, max_depth=6):
+        # Initialize with the initial state as the starting path
+        initial_state_tuple = self.state_to_tuple(self.initial_state)
+        initial_path = [self.initial_state]
 
-    def empty_positions(self):
-        occupied_positions = set(self.state)
-        all_positions = {(r, c) for r in range(5) for c in range(4)}  # Assuming a 5x4 grid
-        print ('oooooooooooooooooooooccupied_positions')
-        print (occupied_positions)
-        print('all positiooooooons')
-        print(all_positions)
-        print('empty positionnnnnnnnnnnnnns')
-        print(list(all_positions - occupied_positions))
-        return list(all_positions - occupied_positions)
+        # Early check if the initial state is the goal
+        if self.is_goal_state(self.initial_state):
+            print("Goal reached with 0 moves.")
+            return []
 
-    def __hash__(self):
-        return hash(frozenset(self.state))
+        visited = set([initial_state_tuple])  # Set initial state as visited
+        stack = [(self.initial_state, initial_path, 0)]  # Stack stores state, path, and current depth
 
-    def __eq__(self, other):
-        return hash(self) == hash(other)
+        while stack:
+            # Take current state, path and depth
+            current_state, path, depth = stack.pop()
+            # If the current depth exceeds the max depth, skip further exploration
+            if depth >= max_depth:
+                continue
+            # Check possible moves for each block
+            for block in current_state:
+                for direction in ['left', 'right', 'up', 'down']:
+                    new_state = self.move_block(block, direction, current_state)
+                    # Checks the move
+                    if new_state:
+                        state_tuple = self.state_to_tuple(new_state)
+                        # Checks if visited
+                        if state_tuple not in visited:
+                            visited.add(state_tuple)
+                            new_path = path + [new_state]
+                            # Checks the win status
+                            if self.is_goal_state(new_state):
+                                # Prints solution step by step
+                                self.print_solution(new_path)
+                                print(f"Solution found in {len(new_path) - 1} moves")
+                                # Animates solution step by step
+                                self.animate_solution(new_path)
+                                return new_path
 
-    @classmethod
-    def from_board(cls, state):
-        return cls(state)  # Directly accept the state
+                            # Adds new state, path, and incremented depth to the stack
+                            stack.append((new_state, new_path, depth + 1))
 
-    def is_solved(self):
-        # Define the target position for the red block (2x2)
-        target_position = (0, (3,1)) # Adjust based on your winning condition
+        print("No solution found.")
+        return []
 
-        #DEBUG
-        #print(f"This is the state: {self.state}")
-        #print(f"This is the state of red block: {self.state[0][0]}")
 
-        return self.state[0][0] == target_position
+    # Perform Iterative Deepening Search (IDS) to find the shortest path to the goal state
+    def ids(self):
+        max_depth = 0
+        while True:
+            print(f"Starting DFS with depth limit: {max_depth}")
+            solution = self.dfs(max_depth)
+            if solution:
+                return solution
+            max_depth += 1
 
-def bfs_solver(game_state):
-    # Directly use the game_state as it is already in the correct format
-    initial_state = game_state  # This should be a list of tuples: [((x, y), (width, height)), ...]
-    start_board = Boardd(initial_state)
 
-    visited_boards = set()
-    new_boards = [start_board]
-    new_boards_set = {start_board}
-    transitions = {}
-    board = None
-    i = 0
+    # Perform greedy search to find the shortest path to the goal state
+    def greedy_search(self, heuristic):
+        # Initialize with the initial state as the starting path
+        initial_state_tuple = self.state_to_tuple(self.initial_state)
+        initial_path = [self.initial_state]
 
-    while new_boards:
-        board = new_boards.pop(0)
-        new_boards_set.remove(board)
+        # Early check if the initial state is the goal
+        if self.is_goal_state(self.initial_state):
+            print("Goal reached with 0 moves.")
+            return []
 
-        if board.is_solved():
-            break
+        # Priority queue stores states and their heuristic values
+        prior_queue = []
+        heapq.heappush(prior_queue, (heuristic(self.initial_state), self.initial_state, initial_path))
 
-        if i == 0:
-            print(board.state)
-        visited_boards.add(board)
+        visited = set([initial_state_tuple])  # Set initial state as visited
 
-        if i == 0:
-            print(board.state)
+        while prior_queue:
+            # Take the state with the lowest heuristic value
+            _, current_state, path = heapq.heappop(prior_queue)
 
-        for block_index in range(len(board.state)):  # Iterate over each block
-            for new_position in board.potential_moves():
-                #print(f"Attempting to move block {block_index} to new position {new_position}")
-                new_board = board.move(block_index, new_position)  # Use block_index correctly
-                if new_board not in visited_boards and new_board not in new_boards_set:
-                    new_boards.append(new_board)
-                    new_boards_set.add(new_board)
-                    transitions[new_board] = (board, block_index, new_position)
+            # Check possible moves for each block
+            for block in current_state:
+                for direction in ['left', 'right', 'up', 'down']:
+                    new_state = self.move_block(block, direction, current_state)
+                    # Checks the move
+                    if new_state:
+                        state_tuple = self.state_to_tuple(new_state)
+                        # Checks if visited
+                        if state_tuple not in visited:
+                            visited.add(state_tuple)
+                            new_path = path + [new_state]
+                            # Checks the win status
+                            if self.is_goal_state(new_state):
+                                # Prints solution step by step
+                                self.print_solution(new_path)
+                                print(f"Solution found in {len(new_path) - 1} moves")
+                                # Animates solution step by step
+                                self.animate_solution(new_path)
+                                return new_path
+                            # Push the new state and its heuristic value to the priority queue, path as well
+                            heapq.heappush(prior_queue, (heuristic(new_state), new_state, new_path))
 
-    # Backtrack to construct the solution path
-    moves_taken = []
-    while board != start_board:
-        board, block_index, new_position = transitions[board]
-        moves_taken.insert(0, (block_index, new_position))
+        print("No solution found.")
+        return []
 
-   # print(f"moves taken: {moves_taken}")
 
-    # Now, we create the formatted_moves list using list comprehension
-    formatted_moves = [(block_index, new_position) for block_index, (empty_position, new_position) in moves_taken]
+    # Perform A* search to find the shortest path to the goal state
+    def a_star_search(self, heuristic):
+        # Initialize with the initial state as the starting path
+        initial_state_tuple = self.state_to_tuple(self.initial_state)
+        initial_path = [self.initial_state]
 
-    #print(f"formatted moves: {formatted_moves}")
-    return formatted_moves
+        # Early check if the initial state is the goal
+        if self.is_goal_state(self.initial_state):
+            print("Goal reached with 0 moves.")
+            return []
 
+        # Priority queue stores states with their f(n) values (f(n), state, path)
+        prior_queue = []
+        # At the beginning just f(n) = h(n) because g(n) = 0 (cost function)
+        heapq.heappush(prior_queue, (heuristic(self.initial_state), 0, self.initial_state, initial_path))
+
+        # Set of visited states to avoid reprocessing
+        visited = set([initial_state_tuple])
+
+        while prior_queue:
+            # Get the state with the lowest f(n)
+            f_n, g_n, current_state, path = heapq.heappop(prior_queue)
+            # Check possible moves for each block
+            for block in current_state:
+                for direction in ['left', 'right', 'up', 'down']:
+                    new_state = self.move_block(block, direction, current_state)
+                    # Check if the move is valid
+                    if new_state:
+                        state_tuple = self.state_to_tuple(new_state)
+                        # If the state hasn't been visited
+                        if state_tuple not in visited:
+                            visited.add(state_tuple)
+                            new_path = path + [new_state]
+                            # Check if we've reached the goal state
+                            if self.is_goal_state(new_state):
+                                # Prints solution step by step
+                                self.print_solution(new_path)
+                                print(f"Solution found in {len(new_path) - 1} moves")
+                                # Animates solution step by step
+                                self.animate_solution(new_path)
+                                return new_path
+                            # Calculate f(n) = g(n) + h(n)
+                            g_n_new = g_n + 1  # Each move has a cost of 1
+                            f_n_new = g_n_new + heuristic(new_state)
+                            # Add the new state to the open list with its f(n)
+                            heapq.heappush(prior_queue, (f_n_new, g_n_new, new_state, new_path))
+
+        print("No solution found.")
+        return []
+
+    def manhattan(self, state):
+        # Heuristic: Manhattan Distance
+        red_block = state[0]  # Takes state of the red block (top left block credentials)
+        goal_x, goal_y = self.target_positions[0] # Takes the goal credentials (top left credentials)
+        # Calculate Manhattan distance between the red block's top-left corner and target position
+        distance = abs(red_block.grid_x - goal_x) + abs(red_block.grid_y - goal_y)
+        return distance
+
+    def euclidean(self, state):
+        # Heuristic: Euclidean Distance
+        red_block = state[0]  # Takes state of the red block (top left block credentials)
+        goal_x, goal_y = self.target_positions[0]  # Takes the goal position (top-left credentials)
+        # Calculate Euclidean distance between the red block's top-left corner and the target position
+        distance = ((red_block.grid_x - goal_x) ** 2 + (red_block.grid_y - goal_y) ** 2) ** 0.5
+        return distance
+
+    def chebyshev(self, state):
+        # Heuristic: Chebyshev Distance
+        red_block = state[0] # Takes state of the red block (top left block credentials)
+        goal_x, goal_y = self.target_positions[0]   # Takes the goal position (top-left credentials)
+        # Calculate the Chebyshev distance between the red block and the goal position
+        distance = max(abs(red_block.grid_x - goal_x), abs(red_block.grid_y - goal_y))
+        return distance
+
+    def state_to_tuple(self, state):
+        # Converts the state to a tuple for hashing and comparison
+        return tuple(sorted((block.grid_x, block.grid_y, block.size_x, block.size_y) for block in state))
+
+    def is_goal_state(self, state):
+        # Checks if the current state matches the target goal configuration
+        red_block = state[0]  # Assuming the first block is the red block
+        return all(pos in self.target_positions for pos in red_block.get_positions())
+
+    def move_block(self, block, direction, current_state):
+        # Attempts to move a block in the specified direction if valid
+        # Clone the block to avoid mutating the original state
+        cloned_block = Block(block.grid_x, block.grid_y, block.size_x, block.size_y)
+        new_state = [Block(b.grid_x, b.grid_y, b.size_x, b.size_y) for b in current_state]
+
+        # Adjust cloned block's position based on the direction
+        if direction == 'left' and cloned_block.grid_x > 0:
+            cloned_block.grid_x -= 1
+        elif direction == 'right' and cloned_block.grid_x < cols - cloned_block.size_x:
+            cloned_block.grid_x += 1
+        elif direction == 'up' and cloned_block.grid_y > 0:
+            cloned_block.grid_y -= 1
+        elif direction == 'down' and cloned_block.grid_y < rows - cloned_block.size_y:
+            cloned_block.grid_y += 1
+        else:
+            return None
+
+        # Replace the original block in new_state with the moved block
+        for idx, b in enumerate(new_state):
+            if b.grid_x == block.grid_x and b.grid_y == block.grid_y:
+                new_state[idx] = cloned_block
+                break
+
+        # Return None if there is a collision, otherwise return the new state
+        if self.check_collisions(cloned_block, new_state):
+            return None
+        return new_state
+
+    def check_collisions(self, block, current_state):
+        # Checks for collisions between the moving block and others in the state
+        occupied_positions = set()
+        for b in current_state:
+            if b != block:
+                occupied_positions.update(b.get_positions())
+        # Return True if any position is occupied, else False
+        return any(pos in occupied_positions for pos in block.get_positions())
+
+    def print_solution(self, solution_path):
+        # Prints each step in the solution path for debugging
+        for step, state in enumerate(solution_path):
+            print(f"Step {step}:")
+            for block in state:
+                print(f"Block at ({block.grid_x}, {block.grid_y}) with size ({block.size_x}, {block.size_y})")
+            print("-" * 30)
+
+    def animate_solution(self, solution_path):
+        # Animates the solution path in the game
+        for step, state in enumerate(solution_path):
+            self.game.state = state  # Update game state to the current step
+            self.game.update()  # Check for win and update game state
+            self.game.draw()  # Redraw the screen
+            pygame.time.wait(500)  # Wait for 500ms before the next step
+            pygame.display.flip()
+        # After the final step, close the window
+        pygame.quit()
+        sys.exit()

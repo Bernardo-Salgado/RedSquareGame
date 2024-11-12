@@ -2,11 +2,10 @@ import pygame
 import sys
 from menu import Menu
 from game import Game
-from solver import Boardd
-from solver import bfs_solver
+from solver import Solver
+
 
 def main():
-
     pygame.init()
 
     screen_width, screen_height = 1536, 864
@@ -24,38 +23,34 @@ def main():
 
             menu_action = menu.handle_event(event)
             if menu_action == "start":
-                while True:
-                    game.update()
-                    game.draw()
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            pygame.quit()
-                            sys.exit()
-                        game.handle_event(event)
+                # Run the game (player solver)
+                game.run()
 
             elif menu_action == "solve":
-                print("Solving...")
+                print('Solving...')
+                # Initialize the game and the solver
+                solver = Solver(game)
+                # UNCOMMENT A SPECIFIC SOLVER
 
-                # Directly use the game.state as it is now a list of tuples: [((x, y), (width, height)), ...]
-                board_state = game.state  # This is already in the correct format
+                # Run the BFS solver to find the solution path
+                # solver.bfs()
 
-                # Solve the puzzle using the BFS solver
-                solution_moves = bfs_solver(board_state)
+                # Run the DFS solver to find the solution path
+                # max_depth = 10
+                # solver.dfs(max_depth)
 
-                for move in solution_moves:
-                    piece_index, new_position = move  # Unpack the move tuple
-                    current_position, size = board_state[piece_index]  # Get the current position and size
+                # Run the IDS solver to find the solution path
+                # solver.ids()
 
-                    # Determine the direction of movement
-                    direction = game.get_move_direction(current_position, new_position)  # Use the current position
+                # Run the greedy solver to find the solution path with different heuristics
+                # solver.greedy_search(solver.manhattan)
+                # solver.greedy_search(solver.euclidean)
+                # solver.greedy_search(solver.manhattan)
 
-                    # Move the block using the new position and direction
-                    current_position, block_size = board_state[piece_index]  # Get the current position and size
-                    moved = game.move_block((current_position, block_size), direction)  # Pass the position, size, and direction
-                    if moved:
-                        game.draw()  # Redraw the game state
-                        pygame.display.flip()  # Update the display
-                        pygame.time.delay(500)  # Delay for visual effect
+                # Run A* solver to find the solution path with different heuristics
+                # solver.a_star_search(solver.manhattan)
+                # solver.a_star_search(solver.euclidean)
+                # solver.a_star_search(solver.chebyshev)
 
             elif menu_action is None:
                 pass
