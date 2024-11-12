@@ -30,8 +30,18 @@ def main():
                 print('Solving...')
                 # Initialize the game and the solver
                 solver = Solver(game)
+                # UNCOMMENT A SPECIFIC SOLVER
                 # Run the BFS solver to find the solution path
-                moves = solver.bfs()
+                # solver.bfs()
+                # Run the DFS solver to find the solution path
+                # max_depth = 10
+                # solver.dfs(max_depth)
+                # Run the IDS solver to find the solution path
+                # solver.ids()
+                # Run the greedy solver to find the solution path
+                solver.greedy_search()
+                # Run A* solver to find the solution path
+                #solver.a_star_search()
 
             elif menu_action is None:
                 pass

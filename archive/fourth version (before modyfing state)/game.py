@@ -26,12 +26,11 @@ Position = namedtuple('Position', ['x', 'y'])
 
 class Block:
     def __init__(self, grid_x, grid_y, size_x, size_y):
-
-        self.grid_x = grid_x # block coordinates
+        self.grid_x = grid_x  # block coordinates
         self.grid_y = grid_y
-        self.size_x = size_x # Width of the block
-        self.size_y = size_y # Height of the block
-        self.color = self.assign_color() # Automatically assign color based on size
+        self.size_x = size_x  # Width of the block
+        self.size_y = size_y  # Height of the block
+        self.color = self.assign_color()  # Automatically assign color based on size
 
     def get_positions(self):
         # Return the space occupied by the block of size: size_x x size_y
@@ -40,11 +39,11 @@ class Block:
     def assign_color(self):
         # Assign color based on the size of the block using predefined constants
         if self.size_x == 1 and self.size_y == 1:
-            return YELLOW # Use the YELLOW constant for 1x1 blocks
+            return YELLOW  # Use the YELLOW constant for 1x1 blocks
         elif self.size_x == 2 and self.size_y == 2:
-            return RED # Use the RED constant for 2x2 blocks
+            return RED  # Use the RED constant for 2x2 blocks
         else:
-            return GRAY # Use the GRAY constant for other sizes
+            return GRAY  # Use the GRAY constant for other sizes
 
     def draw(self, surface):
         # Calculate the rectangle for the block based on its grid position and size
@@ -53,10 +52,15 @@ class Block:
         pygame.draw.rect(surface, self.color, rect)
         pygame.draw.rect(surface, (0, 0, 0), rect, 2)
 
+    def __lt__(self, other):
+        # Block comparison basing on their position (top left coordinates)
+        if self.grid_x == other.grid_x: # if x is the same
+            return self.grid_y < other.grid_y
+        return self.grid_x < other.grid_x
+
 
 class Game:
     def __init__(self):
-
         pygame.init()
         self.screen_width, self.screen_height = 1536, 864
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
@@ -64,31 +68,48 @@ class Game:
 
         # Initial state of the game
         self.initial_state = [
-            Block(0, 0, 2, 2),  # Red block (2x2)
-            Block(1, 2, 1, 1),  # Yellow block (1x1)
-            Block(4, 3, 1, 1),  # Another yellow block
-            Block(3, 1, 1, 1),  # Another yellow block
+            Block(0, 1, 2, 2),  # Red block (2x2)
+            Block(0, 0, 1, 1),  # Yellow block (1x1)
+            Block(1, 0, 1, 1),  # Yellow block (1x1)
+            Block(2, 0, 1, 1),  # Yellow block (1x1)
+            Block(3, 0, 1, 1),  # Yellow block (1x1)
+            Block(4, 0, 1, 1),  # Yellow block (1x1)
+            Block(0, 3, 1, 1),  # Yellow block (1x1)
+            Block(1, 3, 1, 1),  # Yellow block (1x1)
+            Block(2, 3, 1, 1),  # Yellow block (1x1)
+            Block(3, 3, 1, 1),  # Yellow block (1x1)
+            Block(4, 3, 1, 1),  # Yellow block (1x1)
+            Block(2, 1, 1, 1),  # Yellow block (1x1)
+            Block(3, 1, 1, 1),  # Yellow block (1x1)
+            Block(2, 2, 1, 1),  # Another yellow block
+            Block(3, 2, 1, 1),  # Another yellow block
         ]
+
         # The current state (can change as blocks move)
         self.state = list(self.initial_state)
         self.selected_block = None
         self.start_pos = None
-        self.move_count = 0 # Moves counter
+        self.move_count = 0  # Moves counter
+        self.game_won = False  # Flag to indicate if the game is won
 
     def run(self):
-
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
                 self.handle_event(event)
-            # Check if win and draw the board
+            # Check for win and draw the board
             self.update()
             self.draw()
 
-    def handle_event(self, event):
+            # If the game is won, delay a bit before quitting to show the last move
+            if self.game_won:
+                pygame.time.wait(500)  # Wait for 0.5 second before quitting
+                pygame.quit()
+                sys.exit()
 
+    def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.start_pos = pygame.mouse.get_pos()
             self.selected_block = self.get_selected_block(self.start_pos)
@@ -105,7 +126,6 @@ class Game:
             self.start_pos = None
 
     def get_selected_block(self, mouse_pos):
-
         for block in self.state:
             # Create a rectangle for the block based on its grid position and size
             rect = pygame.Rect(playable_x + block.grid_x * cell_width, playable_y + block.grid_y * cell_height,
@@ -136,10 +156,9 @@ class Game:
             if moved:  # Only increment if a move was successful
                 self.move_count += 1
                 self.start_pos = end_pos
-                self.print_current_state() # Update start_pos to the new position
+                self.print_current_state()  # Update start_pos to the new position
 
     def move_block(self, block, direction):
-
         prev_x, prev_y = block.grid_x, block.grid_y
         if direction == 'left' and block.grid_x > 0:
             block.grid_x -= 1
@@ -155,11 +174,9 @@ class Game:
             block.grid_x, block.grid_y = prev_x, prev_y
             print(f"Move {direction} blocked by collision.")
             return False
-#        print(f"Moved {direction} to ({block.grid_x}, {block.grid_y})")
         return True
 
     def check_collisions(self, block):
-
         occupied_positions = set()
         for b in self.state:
             # Collect positions of all blocks except the one being moved
@@ -182,14 +199,11 @@ class Game:
         return all(pos in target_positions for pos in red_block.get_positions())
 
     def update(self):
-        # Update the game win state, if win print the info and close the window
         if self.is_goal_state():
             print("CONGRATULATIONS! You've solved the puzzle!")
-            pygame.quit()
-            sys.exit()
+            self.game_won = True  # Set the game_won flag
 
     def draw(self):
-
         self.screen.fill(GRAY)
         pygame.draw.rect(self.screen, WHITE, playable_area)
         # Draw the grid
@@ -206,10 +220,10 @@ class Game:
         pygame.time.Clock().tick(60)
 
     def draw_move_counter(self):
-
         font = pygame.font.SysFont(None, 40)
         move_text = font.render(f'Moves: {self.move_count}', True, (0, 0, 0))
         self.screen.blit(move_text, (self.screen_width - 150, 20))
+
 
 if __name__ == "__main__":
     game = Game()
