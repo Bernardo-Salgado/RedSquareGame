@@ -7,8 +7,8 @@ from solver import Solver
 def main():
     pygame.init()
 
-    screen_width, screen_height = 1536, 864
-    screen = pygame.display.set_mode((screen_width, screen_height))
+    screen_width, screen_height = 1920, 1080
+    screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
     pygame.display.set_caption("Red Duck Game")
 
     menu = Menu(screen)

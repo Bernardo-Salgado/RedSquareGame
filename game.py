@@ -9,17 +9,22 @@ RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 GRAY = (200, 200, 200)
 
-# Define the playable area
-playable_width = 640  # 128 each block
-playable_height = 512
-playable_x = (1536 - playable_width) // 2
-playable_y = (864 - playable_height) // 2
+# Define the number of columns and rows
+cols, rows = 6, 4
+
+# Define a fixed tile size
+tile_size = 128
+
+# Calculate the playable area based on the number of columns and rows
+playable_width = cols * tile_size
+playable_height = rows * tile_size
+playable_x = (1920 - playable_width) // 2
+playable_y = (1080 - playable_height) // 2
 playable_area = pygame.Rect(playable_x, playable_y, playable_width, playable_height)
 
-# Define grid dimensions
-cols, rows = 5, 4
-cell_width = playable_width // cols
-cell_height = playable_height // rows
+# Define cell dimensions
+cell_width = tile_size
+cell_height = tile_size
 
 # Define a named tuple for positions
 Position = namedtuple('Position', ['x', 'y'])
@@ -63,8 +68,8 @@ class Block:
 class Game:
     def __init__(self):
         pygame.init()
-        self.screen_width, self.screen_height = 1536, 864
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.screen_width, self.screen_height = 1920, 1080
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
         pygame.display.set_caption("Klotski Game")
 
         self.initial_state = self.create_initial_state()  # Create initial state
@@ -200,7 +205,7 @@ class Game:
 
     def is_goal_state(self):
         # Target position
-        target_positions = [(3, 1), (4, 1), (3, 2), (4, 2)]
+        target_positions = [(cols - 2, rows/2 - 1), (cols - 1, rows/2 - 1), (cols - 2, rows/2 ), (cols - 1, rows/2)]
         red_block = self.state[0]
         # Return the win state
         return all(pos in target_positions for pos in red_block.get_positions())
