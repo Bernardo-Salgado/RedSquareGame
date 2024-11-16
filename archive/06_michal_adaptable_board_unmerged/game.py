@@ -1,80 +1,97 @@
 import sys
 import pygame
 from collections import namedtuple
+from end import EndMenu
 
 # Define colors (RGB)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
 GRAY = (200, 200, 200)
-BLACK = (0, 0, 0)
 
-# Define the playable area
-playable_width = 640  # 128 each block
-playable_height = 512
-playable_x = (1536 - playable_width) // 2
-playable_y = (864 - playable_height) // 2
+# Define the number of columns and rows
+cols, rows = 6, 4
+
+# Define a fixed tile size
+tile_size = 128
+
+# Calculate the playable area based on the number of columns and rows
+playable_width = cols * tile_size
+playable_height = rows * tile_size
+playable_x = (1920 - playable_width) // 2
+playable_y = (1080 - playable_height) // 2
 playable_area = pygame.Rect(playable_x, playable_y, playable_width, playable_height)
 
-# Define grid dimensions
-cols, rows = 5, 4
-cell_width = playable_width // cols
-cell_height = playable_height // rows
+# Define cell dimensions
+cell_width = tile_size
+cell_height = tile_size
+
+# Define a named tuple for positions
+Position = namedtuple('Position', ['x', 'y'])
 
 
 class Block:
-    def __init__(self, grid_x, grid_y, size_x, size_y, color):
-        self.grid_x = grid_x
+    def __init__(self, grid_x, grid_y, size_x, size_y):
+        self.grid_x = grid_x  # block coordinates
         self.grid_y = grid_y
         self.size_x = size_x  # Width of the block
         self.size_y = size_y  # Height of the block
-        # self.color = self.assign_color()  # Automatically assign color based on size
+        self.color = self.assign_color()  # Automatically assign color based on size
 
     def get_positions(self):
+        # Return the space occupied by the block of size: size_x x size_y
         return [(self.grid_x + dx, self.grid_y + dy) for dx in range(self.size_x) for dy in range(self.size_y)]
 
     def assign_color(self):
         # Assign color based on the size of the block using predefined constants
         if self.size_x == 1 and self.size_y == 1:
-            return YELLOW
+            return YELLOW  # Use the YELLOW constant for 1x1 blocks
         elif self.size_x == 2 and self.size_y == 2:
-            return RED
-        elif self.size_x == 2 and self.size_y == 1:
-            return GREEN
-        elif self.size_x == 1 and self.size_y == 2:
-            return BLUE
+            return RED  # Use the RED constant for 2x2 blocks
         else:
             return GRAY  # Use the GRAY constant for other sizes
 
-    # def draw(self, surface):
-    #     # Calculate the rectangle for the block based on its grid position and size
-    #     rect = pygame.Rect(playable_x + self.grid_x * cell_width, playable_y + self.grid_y * cell_height,
-    #                        self.size_x * cell_width, self.size_y * cell_height)
-    #     pygame.draw.rect(surface, self.color, rect)
-    #     pygame.draw.rect(surface, BLACK, rect, 2)  # Draw border
+    def draw(self, surface):
+        # Calculate the rectangle for the block based on its grid position and size
+        rect = pygame.Rect(playable_x + self.grid_x * cell_width, playable_y + self.grid_y * cell_height,
+                           self.size_x * cell_width, self.size_y * cell_height)
+        pygame.draw.rect(surface, self.color, rect)
+        pygame.draw.rect(surface, (0, 0, 0), rect, 2)
+
+    def __lt__(self, other):
+        # Block comparison basing on their position (top left coordinates)
+        if self.grid_x == other.grid_x: # if x is the same
+            return self.grid_y < other.grid_y
+        return self.grid_x < other.grid_x
 
 
 class Game:
     def __init__(self):
         pygame.init()
-        self.screen_width, self.screen_height = 1536, 864
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.screen_width, self.screen_height = 1920, 1080
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
         pygame.display.set_caption("Klotski Game")
 
-        self.state = [
-            ((0, 0), (2, 2)),  # Block at (0, 0) with size 2x2 - game.stae[0] is the RED block
-            ((1, 3), (1, 1)),  # Block at (1, 3) with size 1x1
-            ((4, 3), (2, 1)),  # Block at (4, 3) with size 1x1
-            ((3, 1), (1, 2)),  # Block at (3, 1) with size 1x1
+        self.initial_state = self.create_initial_state()  # Create initial state
+        self.reset()  # Call reset to initialize the game state
+
+    def create_initial_state(self):
+        # Define the initial state of the game
+        return [
+            Block(0, 1, 2, 2),  # Red block (2x2)
+            # Add other blocks as needed
         ]
 
+    def reset(self):
+        # Reset the current state to the initial state
+        self.state = [Block(block.grid_x, block.grid_y, block.size_x, block.size_y) for block in self.initial_state]
         self.selected_block = None
         self.start_pos = None
         self.move_count = 0
+        self.game_won = False
 
     def run(self):
+        end_menu = EndMenu(self.screen, self)  # Pass the Game instance to EndMenu
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -82,8 +99,27 @@ class Game:
                     sys.exit()
                 self.handle_event(event)
 
+            # Check for win and draw the board
             self.update()
             self.draw()
+
+            # If the game is won, show the end menu
+            if self.game_won:
+                result = end_menu.show_end_menu()  # Use the end_menu instance
+                if result == "back_to_menu":
+                    self.reset()  # Reset the game state to return to the main menu
+                    return  # Go back to the main menu
+
+            # If the game is won, delay a bit before quitting to show the last move
+            if self.game_won:
+                pygame.time.wait(500)  # Wait for 0.5 second before quitting
+                pygame.quit()
+                sys.exit()
+
+    def update(self):
+        if self.is_goal_state():
+            print("CONGRATULATIONS! You've solved the puzzle!")
+            self.game_won = True  # Set the game_won flag
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -102,40 +138,14 @@ class Game:
             self.start_pos = None
 
     def get_selected_block(self, mouse_pos):
-        for index, (pos, size) in enumerate(self.state):
+        for block in self.state:
             # Create a rectangle for the block based on its grid position and size
-            rect = pygame.Rect(playable_x + pos[0] * cell_width, playable_y + pos[1] * cell_height,
-                               size[0] * cell_width, size[1] * cell_height)
+            rect = pygame.Rect(playable_x + block.grid_x * cell_width, playable_y + block.grid_y * cell_height,
+                               block.size_x * cell_width, block.size_y * cell_height)
             if rect.collidepoint(mouse_pos):
-                return index  # Return the index of the selected block
+                return block
         return None
 
-    # [POST-SOLVER FUNCTIONS]------------------------------------------------------
-    def get_piece_index(self, piece):
-        for index, (pos, size) in enumerate(self.state):
-            # Check if the block's position matches the piece's position
-            if pos == piece:  # Compare the position directly
-                return index
-        return None  # Return None if the piece is not found
-
-    def get_move_direction(self, start_position, end_position):
-        start_x, start_y = start_position
-        end_x, end_y = end_position
-
-        if start_x == end_x:
-            if start_y < end_y:
-                return 'down'  # Moving down
-            elif start_y > end_y:
-                return 'up'  # Moving up
-        elif start_y == end_y:
-            if start_x < end_x:
-                return 'right'  # Moving right
-            elif start_x > end_x:
-                return 'left'  # Moving left
-
-        return None  # Return None if the move is invalid
-
-    # [/POST-SOLVER FUNCTIONS]-------------------------------------------------------------
     def handle_swipe(self, start_pos, end_pos):
         # Calculate the grid positions based on mouse coordinates
         start_grid_x = (start_pos[0] - playable_x) // cell_width
@@ -149,147 +159,77 @@ class Game:
 
         # Only allow movement of one cell
         if abs(dx) > abs(dy):
-            if dx == 1:  # Move right
-                direction = 'right'
-            elif dx == -1:  # Move left
-                direction = 'left'
-            else:
-                direction = None
+            direction = 'right' if dx == 1 else 'left' if dx == -1 else None
         else:
-            if dy == 1:  # Move down
-                direction = 'down'
-            elif dy == -1:  # Move up
-                direction = 'up'
-            else:
-                direction = None
+            direction = 'down' if dy == 1 else 'up' if dy == -1 else None
 
-        if direction and self.selected_block is not None:
-            # Retrieve the block data using the selected block index
-            block_data = self.state[self.selected_block]
-
-            # Check if the new position is within the grid boundaries
-            new_pos = block_data[0]  # Current position
-            if direction == 'left':
-                new_pos = (new_pos[0] - 1, new_pos[1])
-            elif direction == 'right':
-                new_pos = (new_pos[0] + 1, new_pos[1])
-            elif direction == 'up':
-                new_pos = (new_pos[0], new_pos[1] - 1)
-            elif direction == 'down':
-                new_pos = (new_pos[0], new_pos[1] + 1)
-
-            # Check if the new position is within the grid boundaries
-            if 0 <= new_pos[0] < cols and 0 <= new_pos[1] < rows:
-                moved = self.move_block(block_data, direction)  # Pass the block data instead of the index
-
-                if moved:  # Only increment if a move was successful
-                    self.move_count += 1  # Increment move counter
-                    self.start_pos = end_pos  # Update start_pos to the new position
+        if direction and self.selected_block:
+            moved = self.move_block(self.selected_block, direction)
+            if moved:  # Only increment if a move was successful
+                self.move_count += 1
+                self.start_pos = end_pos
+                self.print_current_state()  # Update start_pos to the new position
 
     def move_block(self, block, direction):
-        prev_pos = block[0]  # Get the previous position
-        size = block[1]  # Get the size of the block
-
-        # Calculate the new position based on the direction
-        if direction == 'left':
-            new_pos = (prev_pos[0] - 1, prev_pos[1])
-        elif direction == 'right':
-            new_pos = (prev_pos[0] + 1, prev_pos[1])
-        elif direction == 'up':
-            new_pos = (prev_pos[0], prev_pos[1] - 1)
-        elif direction == 'down':
-            new_pos = (prev_pos[0], prev_pos[1] + 1)
-        else:
-            return False  # Invalid move
-
-        # Update the block's position
-        new_block = (new_pos, size)
-
-        # Check for collisions
-        if self.check_collisions(new_block, self.get_piece_index(prev_pos)):
+        prev_x, prev_y = block.grid_x, block.grid_y
+        if direction == 'left' and block.grid_x > 0:
+            block.grid_x -= 1
+        elif direction == 'right' and block.grid_x < cols - block.size_x:
+            block.grid_x += 1
+        elif direction == 'up' and block.grid_y > 0:
+            block.grid_y -= 1
+        elif direction == 'down' and block.grid_y < rows - block.size_y:
+            block.grid_y += 1
+        # Check for collisions with other blocks
+        if self.check_collisions(block):
+            # If there is a collision, revert the position
+            block.grid_x, block.grid_y = prev_x, prev_y
             print(f"Move {direction} blocked by collision.")
-            return False  # Move was not successful
+            return False
+        return True
 
-        # Update the state with the new position
-        block_index = self.get_piece_index(prev_pos)
-        self.state[block_index] = new_block
-        return True  # Move was successful
-
-    def check_collisions(self, block, block_index):
+    def check_collisions(self, block):
         occupied_positions = set()
+        for b in self.state:
+            # Collect positions of all blocks except the one being moved
+            if b != block:
+                occupied_positions.update(b.get_positions())
+        # Return collision detection state
+        return any(pos in occupied_positions for pos in block.get_positions())
 
-        # Collect positions of all blocks except the one being moved
-        for index, b in enumerate(self.state):
-            if index != block_index:  # Exclude the block being moved
-                pos, size = b
-                for dx in range(size[0]):
-                    for dy in range(size[1]):
-                        occupied_positions.add((pos[0] + dx, pos[1] + dy))
+    def print_current_state(self):
+        # Print current state
+        print(f"Move: {self.move_count}")
+        for block in self.state:
+            print(f"Block at ({block.grid_x}, {block.grid_y}) with size ({block.size_x}, {block.size_y})")
 
-        # Check if the block's new positions collide with occupied positions
-        block_pos, block_size = block
-        for dx in range(block_size[0]):
-            for dy in range(block_size[1]):
-                if (block_pos[0] + dx, block_pos[1] + dy) in occupied_positions:
-                    print(f"Collision detected at {block_pos[0] + dx}, {block_pos[1] + dy}")
-                    return True  # Collision detected
-        return False  # No collision
-
-    def update(self):
-        # Check for completion condition
-        target_positions = {(3, 1), (4, 1), (3, 2), (4, 2)}
-
-        # Get the positions of the red block (assuming it's the first block in the state)
-        red_block_position = self.state[0][0]  # This is now a tuple (grid_x, grid_y)
-
-        # Get the positions occupied by the red block (2x2)
-        red_positions = {(red_block_position[0], red_block_position[1]),
-                         (red_block_position[0] + 1, red_block_position[1]),
-                         (red_block_position[0], red_block_position[1] + 1),
-                         (red_block_position[0] + 1, red_block_position[1] + 1)}
-
-        # Check if all positions of the red block are in the target positions
-        if all(pos in target_positions for pos in red_positions):
-            print("CONGRATULATIONS! You've solved the puzzle!")
-            pygame.quit()
-            sys.exit()
+    def is_goal_state(self):
+        # Target position
+        target_positions = [(cols - 2, rows/2 - 1), (cols - 1, rows/2 - 1), (cols - 2, rows/2 ), (cols - 1, rows/2)]
+        red_block = self.state[0]
+        # Return the win state
+        return all(pos in target_positions for pos in red_block.get_positions())
 
     def draw(self):
         self.screen.fill(GRAY)
         pygame.draw.rect(self.screen, WHITE, playable_area)
-
         # Draw the grid
         for i in range(cols):
             for j in range(rows):
                 rect = pygame.Rect(playable_x + i * cell_width, playable_y + j * cell_height, cell_width, cell_height)
-                pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)  # Draw grid lines
-
-        for (pos, size) in self.state:
-
-            if size[0] == 1 and size[1] == 1:
-                color = YELLOW
-            elif size[0] == 2 and size[1] == 2:
-                color = RED
-            elif size[0] == 2 and size[1] == 1:
-                color = BLUE
-            elif size[0] == 1 and size[1] == 2:
-                color = GREEN
-
-            rect = pygame.Rect(playable_x + pos[0] * cell_width, playable_y + pos[1] * cell_height,
-                               size[0] * cell_width, size[1] * cell_height)
-            pygame.draw.rect(self.screen, color, rect)  # Color based on size
-            pygame.draw.rect(self.screen, BLACK, rect, 2)  # Draw border
-
+                pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)
+        # Draw all blocks in the game state
+        for block in self.state:
+            block.draw(self.screen)
         # Draw the move counter
         self.draw_move_counter()
-
         pygame.display.flip()
         pygame.time.Clock().tick(60)
 
     def draw_move_counter(self):
         font = pygame.font.SysFont(None, 40)
-        move_text = font.render(f'Moves: {self.move_count}', True, (0, 0, 0))  # Black text
-        self.screen.blit(move_text, (self.screen_width - 150, 20))  # Adjust position as needed
+        move_text = font.render(f'Moves: {self.move_count}', True, (0, 0, 0))
+        self.screen.blit(move_text, (self.screen_width - 150, 20))
 
 
 if __name__ == "__main__":
