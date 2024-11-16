@@ -1,6 +1,7 @@
 import sys
 import pygame
 from collections import namedtuple
+from end import EndMenu
 
 # Define colors (RGB)
 WHITE = (255, 255, 255)
@@ -65,41 +66,54 @@ class Game:
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Klotski Game")
 
-        # Initial state of the game
-        self.initial_state = [
+        self.initial_state = self.create_initial_state()  # Create initial state
+        self.reset()  # Call reset to initialize the game state
+
+    def create_initial_state(self):
+        # Define the initial state of the game
+        return [
             Block(0, 1, 2, 2),  # Red block (2x2)
-            Block(2, 0, 1, 1),  # Yellow block (1x1)
-            Block(3, 0, 1, 1),  # Yellow block (1x1)
-            Block(4, 0, 1, 1),  # Yellow block (1x1)
-            Block(0, 3, 1, 1),  # Yellow block (1x1)
-            Block(3, 1, 1, 1),  # Yellow block (1x1)
-            Block(2, 2, 1, 1),  # Another yellow block
-            Block(3, 2, 1, 1),  # Another yellow block
+            # Add other blocks as needed
         ]
 
-        # The current state (can change as blocks move)
-        self.state = list(self.initial_state)
+    def reset(self):
+        # Reset the current state to the initial state
+        self.state = [Block(block.grid_x, block.grid_y, block.size_x, block.size_y) for block in self.initial_state]
         self.selected_block = None
         self.start_pos = None
-        self.move_count = 0  # Moves counter
-        self.game_won = False  # Flag to indicate if the game is won
+        self.move_count = 0
+        self.game_won = False
 
     def run(self):
+        end_menu = EndMenu(self.screen, self)  # Pass the Game instance to EndMenu
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
                 self.handle_event(event)
+
             # Check for win and draw the board
             self.update()
             self.draw()
+
+            # If the game is won, show the end menu
+            if self.game_won:
+                result = end_menu.show_end_menu()  # Use the end_menu instance
+                if result == "back_to_menu":
+                    self.reset()  # Reset the game state to return to the main menu
+                    return  # Go back to the main menu
 
             # If the game is won, delay a bit before quitting to show the last move
             if self.game_won:
                 pygame.time.wait(500)  # Wait for 0.5 second before quitting
                 pygame.quit()
                 sys.exit()
+
+    def update(self):
+        if self.is_goal_state():
+            print("CONGRATULATIONS! You've solved the puzzle!")
+            self.game_won = True  # Set the game_won flag
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -190,10 +204,6 @@ class Game:
         # Return the win state
         return all(pos in target_positions for pos in red_block.get_positions())
 
-    def update(self):
-        if self.is_goal_state():
-            print("CONGRATULATIONS! You've solved the puzzle!")
-            self.game_won = True  # Set the game_won flag
 
     def draw(self):
         self.screen.fill(GRAY)

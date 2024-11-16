@@ -3,6 +3,7 @@ from game import Game, Block
 import pygame
 import sys
 import heapq
+from end import EndMenu
 
 cols, rows = 5, 4 # Grid size
 
@@ -291,6 +292,9 @@ class Solver:
             print("-" * 30)
 
     def animate_solution(self, solution_path):
+        # Create an instance of EndMenu with the Game instance
+        end_menu = EndMenu(self.game.screen, self.game)  # Pass the Game instance
+
         # Animates the solution path in the game
         for step, state in enumerate(solution_path):
             self.game.state = state  # Update game state to the current step
@@ -298,6 +302,10 @@ class Solver:
             self.game.draw()  # Redraw the screen
             pygame.time.wait(500)  # Wait for 500ms before the next step
             pygame.display.flip()
-        # After the final step, close the window
-        pygame.quit()
-        sys.exit()
+
+            # Increment the move count in the Game instance
+            if step < len(solution_path) - 1:  # Increment for every move except the last state
+                self.game.move_count += 1
+
+        # After the final step, show the end menu
+        end_menu.show_end_menu()  # Call the end menu directly
