@@ -5,11 +5,12 @@ import sys
 setup_cols = 6
 setup_rows = 4
 
+
 class Menu:
     def __init__(self, screen):
         self.screen = screen
         self.font = pygame.font.SysFont(None, 55)
-        self.options = ["Start", "Solve", "Board size: 6 x 4", "Exit"]
+        self.options = ["Start", "Solve", "Board size: 4 x 6", "Exit"]
         self.selected_option = 0
 
         # Define the board sizes
@@ -42,8 +43,7 @@ class Menu:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
                 if self.selected_option == 0:  # Start
-                    cols, rows = self.board_sizes[self.current_board_size_index]
-                    return "start", cols, rows
+                    return "start"
                 elif self.selected_option == 1:  # Solve
                     return "solve"
                 elif self.selected_option == 2:  # Board size
@@ -61,8 +61,7 @@ class Menu:
                 self.selected_option = (self.selected_option + 1) % len(self.options)
             elif event.key == pygame.K_RETURN:
                 if self.selected_option == 0:  # Start
-                    cols, rows = self.board_sizes[self.current_board_size_index]
-                    return "start", cols, rows
+                    return "start"
                 elif self.selected_option == 1:  # Solve
                     return "solve"
                 elif self.selected_option == 2:  # Board size
