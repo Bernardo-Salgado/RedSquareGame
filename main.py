@@ -33,18 +33,18 @@ def main():
                 # UNCOMMENT A SPECIFIC SOLVER
 
                 # Run the BFS solver to find the solution path
-                # solver.bfs()
+                solver.bfs()
 
                 # Run the DFS solver to find the solution path
-                # max_depth = 10
-                # solver.dfs(max_depth)
+                #max_depth = 6
+                #solver.dfs(max_depth)
 
                 # Run the IDS solver to find the solution path
                 # solver.ids()
 
                 # Run the greedy solver to find the solution path with different heuristics
                 # solver.greedy_search(solver.manhattan)
-                # solver.greedy_search(solver.euclidean)
+                #solver.greedy_search(solver.euclidean)
                 # solver.greedy_search(solver.manhattan)
 
                 # Run A* solver to find the solution path with different heuristics

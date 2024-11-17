@@ -5,15 +5,14 @@ import sys
 import heapq
 from end import EndMenu
 
-cols, rows = 5, 4 # Grid size
+cols, rows = 6, 4 # Grid size
 
 class Solver:
     def __init__(self, game):
         self.game = game
         self.initial_state = game.state
         # Define goal positions for the red block
-        self.target_positions = [(3, 1), (4, 1), (3, 2), (4, 2)]
-
+        self.target_positions = [(cols - 2, rows/2 - 1), (cols - 1, rows/2 - 1), (cols - 2, rows/2 ), (cols - 1, rows/2)]
 
     # Perform BFS to find the shortest path to the goal state
     def bfs(self):
@@ -33,10 +32,12 @@ class Solver:
             # Take current state and the path
             current_state, path = queue.popleft()
             # Check possible moves for each block
+
             for block in current_state:
-                for direction in ['left', 'right', 'up', 'down']:
+                for direction in ['right', 'left', 'up', 'down']:
+                    # Move current block
                     new_state = self.move_block(block, direction, current_state)
-                    # Checks the move
+                    # Checks the move possibility
                     if new_state:
                         state_tuple = self.state_to_tuple(new_state)
                         # Checks if visited
@@ -68,13 +69,13 @@ class Solver:
             print("Goal reached with 0 moves.")
             return []
 
-        visited = set([initial_state_tuple])  # Set initial state as visited
+        visited = set()  # Set initial state as visited
         stack = [(self.initial_state, initial_path, 0)]  # Stack stores state, path, and current depth
 
         while stack:
             # Take current state, path and depth
             current_state, path, depth = stack.pop()
-            # If the current depth exceeds the max depth, skip further exploration
+            # If the current de pth exceeds the max depth, skip further exploration
             if depth >= max_depth:
                 continue
             # Check possible moves for each block
@@ -267,7 +268,6 @@ class Solver:
         for idx, b in enumerate(new_state):
             if b.grid_x == block.grid_x and b.grid_y == block.grid_y:
                 new_state[idx] = cloned_block
-                break
 
         # Return None if there is a collision, otherwise return the new state
         if self.check_collisions(cloned_block, new_state):
@@ -298,14 +298,15 @@ class Solver:
         # Animates the solution path in the game
         for step, state in enumerate(solution_path):
             self.game.state = state  # Update game state to the current step
-            self.game.update()  # Check for win and update game state
             self.game.draw()  # Redraw the screen
+            self.game.update()  # Check for win and update game state
             pygame.time.wait(500)  # Wait for 500ms before the next step
             pygame.display.flip()
 
             # Increment the move count in the Game instance
             if step < len(solution_path) - 1:  # Increment for every move except the last state
                 self.game.move_count += 1
-
+        # Reset the current state to the initial state
+        self.game.reset()
         # After the final step, show the end menu
         end_menu.show_end_menu()  # Call the end menu directly
