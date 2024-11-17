@@ -5,14 +5,16 @@ import sys
 import heapq
 from end import EndMenu
 
-cols, rows = 6, 4 # Grid size
 
 class Solver:
     def __init__(self, game):
         self.game = game
         self.initial_state = game.state
+
         # Define goal positions for the red block
-        self.target_positions = [(cols - 2, rows/2 - 1), (cols - 1, rows/2 - 1), (cols - 2, rows/2 ), (cols - 1, rows/2)]
+        self.cols = game.cols  # Use cols from the Game instance
+        self.rows = game.rows  # Use rows from the Game instance
+        self.target_positions = game.target_positions  # Use target_positions from the Game instance
 
     # Perform BFS to find the shortest path to the goal state
     def bfs(self):
@@ -255,11 +257,11 @@ class Solver:
         # Adjust cloned block's position based on the direction
         if direction == 'left' and cloned_block.grid_x > 0:
             cloned_block.grid_x -= 1
-        elif direction == 'right' and cloned_block.grid_x < cols - cloned_block.size_x:
+        elif direction == 'right' and cloned_block.grid_x < self.cols - cloned_block.size_x:
             cloned_block.grid_x += 1
         elif direction == 'up' and cloned_block.grid_y > 0:
             cloned_block.grid_y -= 1
-        elif direction == 'down' and cloned_block.grid_y < rows - cloned_block.size_y:
+        elif direction == 'down' and cloned_block.grid_y < self.rows - cloned_block.size_y:
             cloned_block.grid_y += 1
         else:
             return None

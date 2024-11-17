@@ -10,7 +10,7 @@ YELLOW = (255, 255, 0)
 GRAY = (200, 200, 200)
 
 # Define the number of columns and rows
-cols, rows = 6, 4
+cols, rows = 8, 8
 
 # Define a fixed tile size
 tile_size = 128
@@ -73,6 +73,13 @@ class Game:
 
         self.initial_state = self.create_initial_state()  # Create initial state
         self.reset()  # Call reset to initialize the game state
+
+        self.cols = cols
+        self.rows = rows
+        self.target_positions = [(self.cols - 2, self.rows // 2 - 1),
+                                 (self.cols - 1, self.rows // 2 - 1),
+                                 (self.cols - 2, self.rows // 2),
+                                 (self.cols - 1, self.rows // 2)]
 
     def create_initial_state(self):
         # Define the initial state of the game
