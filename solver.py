@@ -308,7 +308,8 @@ class Solver:
             # Increment the move count in the Game instance
             if step < len(solution_path) - 1:  # Increment for every move except the last state
                 self.game.move_count += 1
-        # Reset the current state to the initial state
-        self.game.reset()
+
         # After the final step, show the end menu
         end_menu.show_end_menu()  # Call the end menu directly
+        # Reset the current state to the initial state
+        self.game.reset()
