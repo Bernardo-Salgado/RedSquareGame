@@ -2,6 +2,7 @@ import sys
 import pygame
 from collections import namedtuple
 from end import EndMenu
+from menu import setup_cols, setup_rows
 
 # Define colors (RGB)
 WHITE = (255, 255, 255)
@@ -10,7 +11,8 @@ YELLOW = (255, 255, 0)
 GRAY = (200, 200, 200)
 
 # Define the number of columns and rows
-cols, rows = 8, 8
+cols = setup_cols
+rows = setup_rows
 
 # Define a fixed tile size
 tile_size = 128
@@ -21,6 +23,10 @@ playable_height = rows * tile_size
 playable_x = (1920 - playable_width) // 2
 playable_y = (1080 - playable_height) // 2
 playable_area = pygame.Rect(playable_x, playable_y, playable_width, playable_height)
+
+#Define target positions.
+
+target_positions = [(cols - 2, rows/2 - 1), (cols - 1, rows/2 - 1), (cols - 2, rows/2 ), (cols - 1, rows/2)]
 
 # Define cell dimensions
 cell_width = tile_size
@@ -211,7 +217,6 @@ class Game:
 
     def is_goal_state(self):
         # Target position
-        target_positions = [(cols - 2, rows/2 - 1), (cols - 1, rows/2 - 1), (cols - 2, rows/2 ), (cols - 1, rows/2)]
         red_block = self.state[0]
         # Return the win state
         return all(pos in target_positions for pos in red_block.get_positions())

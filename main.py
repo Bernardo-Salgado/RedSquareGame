@@ -4,7 +4,6 @@ from menu import Menu
 from game import Game
 from solver import Solver
 
-
 def main():
     pygame.init()
 
