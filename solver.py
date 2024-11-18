@@ -5,6 +5,7 @@ import sys
 import heapq
 from end import EndMenu
 
+print("SOLVER.PYYYYYYYYYYYYYYYYYYY")
 
 class Solver:
     def __init__(self, game):

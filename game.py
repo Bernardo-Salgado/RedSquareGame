@@ -2,7 +2,15 @@ import sys
 import pygame
 from collections import namedtuple
 from end import EndMenu
-from menu import setup_cols, setup_rows
+from menu import setup_cols, setup_rows, Menu
+import json
+
+def load_dimensions():
+    with open("dimensions.json", "r") as f:
+        dimensions = json.load(f)
+    return dimensions
+
+dimensions = load_dimensions()
 
 # Define colors (RGB)
 WHITE = (255, 255, 255)
@@ -11,8 +19,16 @@ YELLOW = (255, 255, 0)
 GRAY = (200, 200, 200)
 
 # Define the number of columns and rows
-cols = setup_cols
-rows = setup_rows
+cols = dimensions['cols']
+rows = dimensions['rows']
+
+# cols = get_setup_dimensions[0]
+# rows = get_setup_dimensions[1]
+
+print ("setup_cols IN GAME.PY")
+print (setup_cols)
+print ("setup_rows IN GAME.PY")
+print (setup_rows)
 
 # Define a fixed tile size
 tile_size = 128
@@ -244,6 +260,15 @@ class Game:
         self.screen.blit(move_text, (self.screen_width - 150, 20))
 
 
+# if __name__ == "__main__":
+#     game = Game()
+#     game.run()
+
+
 if __name__ == "__main__":
-    game = Game()
-    game.run()
+    dimensions = load_dimensions()  # Wait for the "Start" button in the menu
+    if dimensions:  # If "Start" was clicked
+        cols, rows = dimensions
+        print(f"Starting game with board size: {cols}x{rows}")
+        game = Game(cols, rows)  # Initialize the game with dimensions
+        game.run()

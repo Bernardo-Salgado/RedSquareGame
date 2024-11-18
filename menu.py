@@ -1,10 +1,15 @@
 import pygame
 import sys
+import json
 
 # Define configuration variables
 setup_cols = 6
 setup_rows = 4
 
+def save_dimensions(cols, rows):
+    dimensions = {"cols": cols, "rows": rows}
+    with open("dimensions.json", "w") as f:
+        json.dump(dimensions, f)
 
 class Menu:
     def __init__(self, screen):
@@ -43,6 +48,11 @@ class Menu:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
                 if self.selected_option == 0:  # Start
+                    save_dimensions(self.board_sizes[self.current_board_size_index][0], self.board_sizes[self.current_board_size_index][1])
+                    print("HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEY COL")
+                    print(self.board_sizes[self.current_board_size_index][0])
+                    print("HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEY ROW")
+                    print(self.board_sizes[self.current_board_size_index][1])
                     return "start"
                 elif self.selected_option == 1:  # Solve
                     return "solve"
