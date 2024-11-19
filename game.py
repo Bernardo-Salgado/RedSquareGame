@@ -1,16 +1,8 @@
 import sys
 import pygame
+import random
 from collections import namedtuple
 from end import EndMenu
-from menu import setup_cols, setup_rows, Menu
-import json
-
-def load_dimensions():
-    with open("dimensions.json", "r") as f:
-        dimensions = json.load(f)
-    return dimensions
-
-dimensions = load_dimensions()
 
 # Define colors (RGB)
 WHITE = (255, 255, 255)
@@ -18,67 +10,88 @@ RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 GRAY = (200, 200, 200)
 
-# Define the number of columns and rows
-cols = dimensions['cols']
-rows = dimensions['rows']
-
-# cols = get_setup_dimensions[0]
-# rows = get_setup_dimensions[1]
-
-print ("setup_cols IN GAME.PY")
-print (setup_cols)
-print ("setup_rows IN GAME.PY")
-print (setup_rows)
-
 # Define a fixed tile size
 tile_size = 128
 
-# Calculate the playable area based on the number of columns and rows
-playable_width = cols * tile_size
-playable_height = rows * tile_size
-playable_x = (1920 - playable_width) // 2
-playable_y = (1080 - playable_height) // 2
-playable_area = pygame.Rect(playable_x, playable_y, playable_width, playable_height)
+# # Define the number of columns and rows
+# cols = setup_cols
+# rows = setup_rows
 
-#Define target positions.
+# # Calculate the playable area based on the number of columns and rows
+# playable_width = cols * tile_size
+# playable_height = rows * tile_size
+# playable_x = (1920 - playable_width) // 2
+# playable_y = (1080 - playable_height) // 2
+# playable_area = pygame.Rect(playable_x, playable_y, playable_width, playable_height)
 
-target_positions = [(cols - 2, rows/2 - 1), (cols - 1, rows/2 - 1), (cols - 2, rows/2 ), (cols - 1, rows/2)]
+# #Define target positions.
 
-# Define cell dimensions
-cell_width = tile_size
-cell_height = tile_size
+# target_positions = [(cols - 2, rows/2 - 1), (cols - 1, rows/2 - 1), (cols - 2, rows/2 ), (cols - 1, rows/2)]
 
-# Define a named tuple for positions
-Position = namedtuple('Position', ['x', 'y'])
+# # Define cell dimensions
+# cell_width = tile_size
+# cell_height = tile_size
 
 
 class Block:
-    def __init__(self, grid_x, grid_y, size_x, size_y):
-        self.grid_x = grid_x  # block coordinates
+
+    # Class-level attributes for images
+    small_duck_image = None
+    red_duck_image = None
+
+    def __init__(self, grid_x, grid_y, size_x, size_y, cols, rows):
+
+
+        self.cols = cols
+        self.rows = rows
+
+        self.playable_width = cols * tile_size
+        self.playable_height = rows * tile_size
+        self.playable_x = (1920 - self.playable_width) // 2
+        self.playable_y = (1080 - self.playable_height) // 2
+
+        # Define cell dimensions
+        self.cell_width = tile_size
+        self.cell_height = tile_size
+
+
+
+        self.grid_x = grid_x
         self.grid_y = grid_y
-        self.size_x = size_x  # Width of the block
-        self.size_y = size_y  # Height of the block
-        self.color = self.assign_color()  # Automatically assign color based on size
+        self.size_x = size_x
+        self.size_y = size_y
+        self.image = self.assign_image()
+
+    @classmethod
+    def load_images(cls, small_duck_image, red_duck_image, hor_duck_image, ver_duck_image):
+        cls.small_duck_image = small_duck_image
+        cls.red_duck_image = red_duck_image
+        cls.hor_duck_image = hor_duck_image  # Add horizontal duck image
+        cls.ver_duck_image = ver_duck_image  # Add vertical duck image
 
     def get_positions(self):
         # Return the space occupied by the block of size: size_x x size_y
         return [(self.grid_x + dx, self.grid_y + dy) for dx in range(self.size_x) for dy in range(self.size_y)]
 
-    def assign_color(self):
-        # Assign color based on the size of the block using predefined constants
+    def assign_image(self):
         if self.size_x == 1 and self.size_y == 1:
-            return YELLOW  # Use the YELLOW constant for 1x1 blocks
+            return self.small_duck_image
         elif self.size_x == 2 and self.size_y == 2:
-            return RED  # Use the RED constant for 2x2 blocks
-        else:
-            return GRAY  # Use the GRAY constant for other sizes
+            return self.red_duck_image
+        elif self.size_x == 2 and self.size_y == 1:
+            return Block.hor_duck_image  # Use the horizontal duck image
+        elif self.size_x == 1 and self.size_y == 2:
+            return Block.ver_duck_image  # Use the vertical duck image
+        return None  # Return None if no image is assigned
 
     def draw(self, surface):
-        # Calculate the rectangle for the block based on its grid position and size
-        rect = pygame.Rect(playable_x + self.grid_x * cell_width, playable_y + self.grid_y * cell_height,
-                           self.size_x * cell_width, self.size_y * cell_height)
-        pygame.draw.rect(surface, self.color, rect)
-        pygame.draw.rect(surface, (0, 0, 0), rect, 2)
+        rect = pygame.Rect(self.playable_x + self.grid_x * self.cell_width, self.playable_y + self.grid_y * self.cell_height,
+                           self.size_x * self.cell_width, self.size_y * self.cell_height)
+        if self.image:
+            surface.blit(self.image, rect.topleft)
+        else:
+            pygame.draw.rect(surface, GRAY, rect)
+            pygame.draw.rect(surface, (0, 0, 0), rect, 2)
 
     def __lt__(self, other):
         # Block comparison basing on their position (top left coordinates)
@@ -87,11 +100,61 @@ class Block:
         return self.grid_x < other.grid_x
 
 class Game:
-    def __init__(self):
+    def __init__(self, cols, rows):
         pygame.init()
+
+        
+
+        # # Define the number of columns and rows
+        # cols = setup_cols
+        # rows = setup_rows
+
+        self.cols = cols
+        self.rows = rows
+
+        # Calculate the playable area based on the number of columns and rows
+        self.playable_width = cols * tile_size
+        self.playable_height = rows * tile_size
+        self.playable_x = (1920 - self.playable_width) // 2
+        self.playable_y = (1080 - self.playable_height) // 2
+        self.playable_area = pygame.Rect(self.playable_x, self.playable_y, self.playable_width, self.playable_height)
+
+        #Define target positions.
+
+        target_positions = [(cols - 2, rows/2 - 1), (cols - 1, rows/2 - 1), (cols - 2, rows/2 ), (cols - 1, rows/2)]
+
+        # Define cell dimensions
+        self.cell_width = tile_size
+        self.cell_height = tile_size
+
+
         self.screen_width, self.screen_height = 1920, 1080
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
         pygame.display.set_caption("Klotski Game")
+
+        # Load the duck images
+        self.red_duck_image = pygame.image.load('img/redduck.png').convert_alpha()
+        self.red_duck_image = pygame.transform.scale(self.red_duck_image, (self.cell_width * 2, self.cell_height * 2))
+        self.small_duck_image = pygame.image.load('img/smallduck.png').convert_alpha()
+        self.small_duck_image = pygame.transform.scale(self.small_duck_image, (self.cell_width * 1, self.cell_height * 1))
+
+        # Load horizontal and vertical duck images
+        self.hor_duck_image = pygame.image.load('img/horduck.png').convert_alpha()
+        self.hor_duck_image = pygame.transform.scale(self.hor_duck_image, (self.cell_width * 2, self.cell_height * 1))
+        self.ver_duck_image = pygame.image.load('img/verduck.png').convert_alpha()
+        self.ver_duck_image = pygame.transform.scale(self.ver_duck_image, (self.cell_width * 1, self.cell_height * 2))
+
+        # Load images into Block class
+        Block.load_images(self.small_duck_image, self.red_duck_image, self.hor_duck_image, self.ver_duck_image)
+
+        # Load sounds
+        self.quack_sounds = [pygame.mixer.Sound(f'audio/quack_{i}.wav') for i in range(10)]
+        self.sick_quack_sounds = [pygame.mixer.Sound(f'audio/sick_quack_{i}.wav') for i in range(10)]
+        self.swirl_sounds = [pygame.mixer.Sound(f'audio/swirl_{i}.wav') for i in range(25)]  # Load swirl sounds
+
+        # Load and play music
+        pygame.mixer.music.load('audio/duckmusic.mp3')  # Load the music file
+        pygame.mixer.music.play(-1)  # Play the music on loop (-1 means loop indefinitely)
 
         self.initial_state = self.create_initial_state()  # Create initial state
         self.reset()  # Call reset to initialize the game state
@@ -106,13 +169,16 @@ class Game:
     def create_initial_state(self):
         # Define the initial state of the game
         return [
-            Block(0, 1, 2, 2),  # Red block (2x2)
+            Block(0, 1, 2, 2, self.cols, self.rows),  # Sick red duck
+            Block(2, 1, 1, 1, self.cols, self.rows),  # Healthy small duck
+            Block(1, 0, 2, 1, self.cols, self.rows),  # Horizontal duck
+            Block(4, 0, 1, 2, self.cols, self.rows)  # Vertical duck
             # Add other blocks as needed
         ]
 
     def reset(self):
         # Reset the current state to the initial state
-        self.state = [Block(block.grid_x, block.grid_y, block.size_x, block.size_y) for block in self.initial_state]
+        self.state = [Block(block.grid_x, block.grid_y, block.size_x, block.size_y, self.cols, self.rows) for block in self.initial_state]
         self.selected_block = None
         self.start_pos = None
         self.move_count = 0
@@ -168,18 +234,18 @@ class Game:
     def get_selected_block(self, mouse_pos):
         for block in self.state:
             # Create a rectangle for the block based on its grid position and size
-            rect = pygame.Rect(playable_x + block.grid_x * cell_width, playable_y + block.grid_y * cell_height,
-                               block.size_x * cell_width, block.size_y * cell_height)
+            rect = pygame.Rect(self.playable_x + block.grid_x * self.cell_width, self.playable_y + block.grid_y * self.cell_height,
+                               block.size_x * self.cell_width, block.size_y * self.cell_height)
             if rect.collidepoint(mouse_pos):
                 return block
         return None
 
     def handle_swipe(self, start_pos, end_pos):
         # Calculate the grid positions based on mouse coordinates
-        start_grid_x = (start_pos[0] - playable_x) // cell_width
-        start_grid_y = (start_pos[1] - playable_y) // cell_height
-        end_grid_x = (end_pos[0] - playable_x) // cell_width
-        end_grid_y = (end_pos[1] - playable_y) // cell_height
+        start_grid_x = (start_pos[0] - self.playable_x) // self.cell_width
+        start_grid_y = (start_pos[1] - self.playable_y) // self.cell_height
+        end_grid_x = (end_pos[0] - self.playable_x) // self.cell_width
+        end_grid_y = (end_pos[1] - self.playable_y) // self.cell_height
 
         # Determine the direction of movement
         dx = end_grid_x - start_grid_x
@@ -202,18 +268,32 @@ class Game:
         prev_x, prev_y = block.grid_x, block.grid_y
         if direction == 'left' and block.grid_x > 0:
             block.grid_x -= 1
-        elif direction == 'right' and block.grid_x < cols - block.size_x:
+        elif direction == 'right' and block.grid_x < self.cols - block.size_x:
             block.grid_x += 1
         elif direction == 'up' and block.grid_y > 0:
             block.grid_y -= 1
-        elif direction == 'down' and block.grid_y < rows - block.size_y:
+        elif direction == 'down' and block.grid_y < self.rows - block.size_y:
             block.grid_y += 1
+
         # Check for collisions with other blocks
         if self.check_collisions(block):
             # If there is a collision, revert the position
             block.grid_x, block.grid_y = prev_x, prev_y
             print(f"Move {direction} blocked by collision.")
             return False
+
+        # Play sounds based on the block index
+        block_index = self.state.index(block)
+        if block_index == 0:  # If it's the first block (2x2)
+            sound_to_play = random.choice(self.sick_quack_sounds)
+        else:  # For blocks with index > 0
+            sound_to_play = random.choice(self.quack_sounds)
+
+        # Play the selected sound
+        sound_to_play.play()
+        # Play a random swirl sound
+        random.choice(self.swirl_sounds).play()
+
         return True
 
     def check_collisions(self, block):
@@ -235,16 +315,17 @@ class Game:
         # Target position
         red_block = self.state[0]
         # Return the win state
-        return all(pos in target_positions for pos in red_block.get_positions())
+        return all(pos in self.target_positions for pos in red_block.get_positions())
 
 
     def draw(self):
         self.screen.fill(GRAY)
-        pygame.draw.rect(self.screen, WHITE, playable_area)
+        pygame.draw.rect(self.screen, WHITE, self.playable_area)
         # Draw the grid
-        for i in range(cols):
-            for j in range(rows):
-                rect = pygame.Rect(playable_x + i * cell_width, playable_y + j * cell_height, cell_width, cell_height)
+        for i in range(self.cols):
+            for j in range(self.rows):
+                rect = pygame.Rect(self.playable_x + i * self.cell_width, self.playable_y + j * self.cell_height,
+                                   self.cell_width, self.cell_height)
                 pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)
         # Draw all blocks in the game state
         for block in self.state:
@@ -263,12 +344,3 @@ class Game:
 # if __name__ == "__main__":
 #     game = Game()
 #     game.run()
-
-
-if __name__ == "__main__":
-    dimensions = load_dimensions()  # Wait for the "Start" button in the menu
-    if dimensions:  # If "Start" was clicked
-        cols, rows = dimensions
-        print(f"Starting game with board size: {cols}x{rows}")
-        game = Game(cols, rows)  # Initialize the game with dimensions
-        game.run()
