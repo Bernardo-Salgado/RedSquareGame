@@ -20,7 +20,7 @@ class Menu:
         self.menu_image = pygame.transform.scale(self.menu_image, (1920, 1080))  # Fitting the screen
 
         # Define the board sizes
-        self.board_sizes = [(6, 4), (10, 6), (12, 6)]
+        self.board_sizes = [(6, 4), (7, 4), (7, 6)]
         self.current_board_size_index = 0
 
         # Music state
@@ -34,7 +34,7 @@ class Menu:
         for i, option in enumerate(self.options):
             if i == 2:  # Update the board size option text
                 cols, rows = self.board_sizes[self.current_board_size_index]
-                option = f"Board size: {cols} x {rows}"
+                option = f"Create a random {cols} x {rows} board"
             elif i == 3:  # Update the music option text
                 option = "Music: ON" if self.music_on else "Music: OFF"
 
