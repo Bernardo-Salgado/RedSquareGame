@@ -31,12 +31,16 @@ def main():
                 game.run()
 
             elif menu_action == "solve":
+                # Get the current board size from the menu
+                cols, rows = menu.board_sizes[menu.current_board_size_index]
+                game = Game(cols, rows)  # Pass the selected board size to the Game instance
+
                 # Initialize the game and the solver
                 solver = Solver(game)
                 # UNCOMMENT A SPECIFIC SOLVER
 
                 # Run the BFS solver to find the solution path
-                # solver.track_solver(solver.bfs, 'BFS')
+                #solver.track_solver(solver.bfs, 'BFS')
 
                 # Run the DFS solver to find the solution path
                 max_depth = 10
