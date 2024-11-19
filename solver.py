@@ -5,7 +5,9 @@ import sys
 import random
 import heapq
 from end import EndMenu
-
+import time
+import psutil
+import os
 
 class Solver:
     def __init__(self, game):
@@ -49,11 +51,7 @@ class Solver:
                             new_path = path + [new_state]
                             # Checks the win status
                             if self.is_goal_state(new_state):
-                                # Prints solution step by step
-                                self.print_solution(new_path)
-                                print(f"Solution found in {len(new_path) - 1} moves")
-                                # Animates solution step by step
-                                self.animate_solution(new_path)
+                                # Return a solution path
                                 return new_path
                             # Adds new state and the path to the queue
                             queue.append((new_state, new_path))
@@ -61,6 +59,7 @@ class Solver:
         return []
 
 
+    # Perform DFS to find the shortest path to the goal state with a depth limit
     # Perform DFS to find the shortest path to the goal state with a depth limit
     def dfs(self, max_depth=6):
         # Initialize with the initial state as the starting path
@@ -72,37 +71,38 @@ class Solver:
             print("Goal reached with 0 moves.")
             return []
 
-        visited = set()  # Set initial state as visited
-        stack = [(self.initial_state, initial_path, 0)]  # Stack stores state, path, and current depth
+        stack = [(self.initial_state, initial_path, 0,
+                  set([initial_state_tuple]))]  # Stack stores state, path, depth, and local visited set
 
         while stack:
-            # Take current state, path and depth
-            current_state, path, depth = stack.pop()
-            # If the current de pth exceeds the max depth, skip further exploration
+            # Take current state, path, depth, and visited set
+            current_state, path, depth, visited = stack.pop()
+
+            # If the current depth reach the maximum depth, skip further exploration
             if depth >= max_depth:
                 continue
+
             # Check possible moves for each block
             for block in current_state:
                 for direction in ['left', 'right', 'up', 'down']:
                     new_state = self.move_block(block, direction, current_state)
-                    # Checks the move
+
+                    # If the move is valid
                     if new_state:
                         state_tuple = self.state_to_tuple(new_state)
-                        # Checks if visited
+
+                        # If the new state has not been visited in the current path
                         if state_tuple not in visited:
-                            visited.add(state_tuple)
                             new_path = path + [new_state]
-                            # Checks the win status
+                            visited.add(state_tuple)  # Mark as visited
+
+                            # If the goal is reached
                             if self.is_goal_state(new_state):
-                                # Prints solution step by step
-                                self.print_solution(new_path)
-                                print(f"Solution found in {len(new_path) - 1} moves")
-                                # Animates solution step by step
-                                self.animate_solution(new_path)
+                                # Return a solution path
                                 return new_path
 
-                            # Adds new state, path, and incremented depth to the stack
-                            stack.append((new_state, new_path, depth + 1))
+                            # Push new state to the stack with updated path, depth, and visited set
+                            stack.append((new_state, new_path, depth + 1, visited.copy()))
 
         print("No solution found.")
         return []
@@ -153,15 +153,10 @@ class Solver:
                             new_path = path + [new_state]
                             # Checks the win status
                             if self.is_goal_state(new_state):
-                                # Prints solution step by step
-                                self.print_solution(new_path)
-                                print(f"Solution found in {len(new_path) - 1} moves")
-                                # Animates solution step by step
-                                self.animate_solution(new_path)
+                                # Return a solution path
                                 return new_path
                             # Push the new state and its heuristic value to the priority queue, path as well
                             heapq.heappush(prior_queue, (heuristic(new_state), new_state, new_path))
-
         print("No solution found.")
         return []
 
@@ -201,18 +196,13 @@ class Solver:
                             new_path = path + [new_state]
                             # Check if we've reached the goal state
                             if self.is_goal_state(new_state):
-                                # Prints solution step by step
-                                self.print_solution(new_path)
-                                print(f"Solution found in {len(new_path) - 1} moves")
-                                # Animates solution step by step
-                                self.animate_solution(new_path)
+                                # Return a solution path
                                 return new_path
                             # Calculate f(n) = g(n) + h(n)
                             g_n_new = g_n + 1  # Each move has a cost of 1
                             f_n_new = g_n_new + heuristic(new_state)
                             # Add the new state to the open list with its f(n)
                             heapq.heappush(prior_queue, (f_n_new, g_n_new, new_state, new_path))
-
         print("No solution found.")
         return []
 
@@ -327,3 +317,30 @@ class Solver:
         end_menu.show_end_menu()  # Call the end menu directly
         # Reset the current state to the initial state
         self.game.reset()
+
+    def track_solver(self, solver_type, solver_name, *solver_args):
+        print(f"Starting {solver_name}...")
+
+        # Start time and memory tracking
+        start_time = time.time()
+        process = psutil.Process(os.getpid())
+        start_memory = process.memory_info().rss
+
+        # Run the solver and capture the solution
+        solution = solver_type(*solver_args)
+
+        # Calculate elapsed time and memory usage
+        elapsed_time = time.time() - start_time
+        end_memory = process.memory_info().rss  # Memory usage after execution
+        memory_used = (end_memory - start_memory) / 1024  # Convert to KB
+
+        # Print solution step by step
+        self.print_solution(solution)
+
+        # Output results
+        print(f"{solver_name} completed in {elapsed_time:.4f} seconds.")
+        print(f"{solver_name} used {memory_used:.4f} KB during execution.")
+        print(f"Solution found in {len(solution) - 1} moves.")
+
+        # Animate solution step by step
+        self.animate_solution(solution)
