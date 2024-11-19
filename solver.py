@@ -2,6 +2,7 @@ from collections import deque
 from game import Game, Block
 import pygame
 import sys
+import random
 import heapq
 from end import EndMenu
 
@@ -308,6 +309,19 @@ class Solver:
             # Increment the move count in the Game instance
             if step < len(solution_path) - 1:  # Increment for every move except the last state
                 self.game.move_count += 1
+
+                # Play sounds based on the block index
+                for block in state:
+                    block_index = self.game.state.index(block)
+                    if block_index == 0:  # If it's the first block (2x2)
+                        sound_to_play = random.choice(self.game.sick_quack_sounds)
+                    else:  # For blocks with index > 0
+                        sound_to_play = random.choice(self.game.quack_sounds)
+
+                    # Play the selected sound
+                    sound_to_play.play()
+                    # Play a random swirl sound
+                    random.choice(self.game.swirl_sounds).play()
 
         # After the final step, show the end menu
         end_menu.show_end_menu()  # Call the end menu directly

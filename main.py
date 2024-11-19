@@ -7,6 +7,8 @@ from solver import Solver
 def main():
     pygame.init()
 
+    pygame.mixer.init()    # Initialize the mixer
+
     screen_width, screen_height = 1536, 864
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Klotski Game")
