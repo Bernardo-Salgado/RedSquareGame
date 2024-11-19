@@ -1,37 +1,16 @@
+# [3/5 GAME.PY]
+
 import sys
 import pygame
 import random
 from collections import namedtuple
 from end import EndMenu
-from menu import setup_cols, setup_rows
 
 # Define colors (RGB)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 GRAY = (200, 200, 200)
-
-# Define the number of columns and rows
-cols = setup_cols
-rows = setup_rows
-
-# Define a fixed tile size
-tile_size = 128
-
-# Calculate the playable area based on the number of columns and rows
-playable_width = cols * tile_size
-playable_height = rows * tile_size
-playable_x = (1920 - playable_width) // 2
-playable_y = (1080 - playable_height) // 2
-playable_area = pygame.Rect(playable_x, playable_y, playable_width, playable_height)
-
-#Define target positions.
-
-target_positions = [(cols - 2, rows/2 - 1), (cols - 1, rows/2 - 1), (cols - 2, rows/2 ), (cols - 1, rows/2)]
-
-# Define cell dimensions
-cell_width = tile_size
-cell_height = tile_size
 
 # Define a named tuple for positions
 Position = namedtuple('Position', ['x', 'y'])
@@ -72,7 +51,7 @@ class Block:
             return Block.ver_duck_image  # Use the vertical duck image
         return None  # Return None if no image is assigned
 
-    def draw(self, surface):
+    def draw(self, surface, playable_x, playable_y, cell_width, cell_height):
         rect = pygame.Rect(playable_x + self.grid_x * cell_width, playable_y + self.grid_y * cell_height,
                            self.size_x * cell_width, self.size_y * cell_height)
         if self.image:
@@ -88,23 +67,50 @@ class Block:
         return self.grid_x < other.grid_x
 
 class Game:
-    def __init__(self):
+    def __init__(self, cols, rows):
+        self.cols = cols
+        self.rows = rows
         pygame.init()
         self.screen_width, self.screen_height = 1920, 1080
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
         pygame.display.set_caption("Klotski Game")
 
+        # Define a fixed tile size
+        self.tile_size = 128
+
+        # Calculate the playable area based on the number of columns and rows
+        self.playable_width = self.cols * self.tile_size
+        self.playable_height = self.rows * self.tile_size
+        self.playable_x = (1920 - self.playable_width) // 2
+        self.playable_y = (1080 - self.playable_height) // 2
+        self.playable_area = pygame.Rect(self.playable_x, self.playable_y, self.playable_width, self.playable_height)
+
+        # Define target positions
+        self.target_positions = [
+            (self.cols - 2, self.rows // 2 - 1),
+            (self.cols - 1, self.rows // 2 - 1),
+            (self.cols - 2, self.rows // 2),
+            (self.cols - 1, self.rows // 2)
+        ]
+
+        # Define cell dimensions
+        self.cell_width = self.tile_size
+        self.cell_height = self.tile_size
+
+        # Define a named tuple for positions
+        self.Position = namedtuple('Position', ['x', 'y'])
+
         # Load the duck images
         self.red_duck_image = pygame.image.load('img/redduck.png').convert_alpha()
-        self.red_duck_image = pygame.transform.scale(self.red_duck_image, (cell_width * 2, cell_height * 2))
+        self.red_duck_image = pygame.transform.scale(self.red_duck_image, (self.cell_width * 2, self.cell_height * 2))
         self.small_duck_image = pygame.image.load('img/smallduck.png').convert_alpha()
-        self.small_duck_image = pygame.transform.scale(self.small_duck_image, (cell_width * 1, cell_height * 1))
+        self.small_duck_image = pygame.transform.scale(self.small_duck_image, (self.cell_width * 1, self.cell_height * 1))
 
         # Load horizontal and vertical duck images
         self.hor_duck_image = pygame.image.load('img/horduck.png').convert_alpha()
-        self.hor_duck_image = pygame.transform.scale(self.hor_duck_image, (cell_width * 2, cell_height * 1))
+        self.hor_duck_image = pygame.transform.scale(self.hor_duck_image, (self.cell_width * 2, self.cell_height * 1))
         self.ver_duck_image = pygame.image.load('img/verduck.png').convert_alpha()
-        self.ver_duck_image = pygame.transform.scale(self.ver_duck_image, (cell_width * 1, cell_height * 2))
+        self.ver_duck_image = pygame.transform.scale(self.ver_duck_image, (self.cell_width * 1, self.cell_height * 2))
 
         # Load images into Block class
         Block.load_images(self.small_duck_image, self.red_duck_image, self.hor_duck_image, self.ver_duck_image)
@@ -123,10 +129,6 @@ class Game:
 
         self.cols = cols
         self.rows = rows
-        self.target_positions = [(self.cols - 2, self.rows // 2 - 1),
-                                 (self.cols - 1, self.rows // 2 - 1),
-                                 (self.cols - 2, self.rows // 2),
-                                 (self.cols - 1, self.rows // 2)]
 
     def create_initial_state(self):
         # Define the initial state of the game
@@ -196,18 +198,19 @@ class Game:
     def get_selected_block(self, mouse_pos):
         for block in self.state:
             # Create a rectangle for the block based on its grid position and size
-            rect = pygame.Rect(playable_x + block.grid_x * cell_width, playable_y + block.grid_y * cell_height,
-                               block.size_x * cell_width, block.size_y * cell_height)
+            rect = pygame.Rect(self.playable_x + block.grid_x * self.cell_width,
+                               self.playable_y + block.grid_y * self.cell_height,
+                               block.size_x * self.cell_width, block.size_y * self.cell_height)
             if rect.collidepoint(mouse_pos):
                 return block
         return None
 
     def handle_swipe(self, start_pos, end_pos):
         # Calculate the grid positions based on mouse coordinates
-        start_grid_x = (start_pos[0] - playable_x) // cell_width
-        start_grid_y = (start_pos[1] - playable_y) // cell_height
-        end_grid_x = (end_pos[0] - playable_x) // cell_width
-        end_grid_y = (end_pos[1] - playable_y) // cell_height
+        start_grid_x = (start_pos[0] - self.playable_x) // self.cell_width
+        start_grid_y = (start_pos[1] - self.playable_y) // self.cell_height
+        end_grid_x = (end_pos[0] - self.playable_x) // self.cell_width
+        end_grid_y = (end_pos[1] - self.playable_y) // self.cell_height
 
         # Determine the direction of movement
         dx = end_grid_x - start_grid_x
@@ -230,11 +233,11 @@ class Game:
         prev_x, prev_y = block.grid_x, block.grid_y
         if direction == 'left' and block.grid_x > 0:
             block.grid_x -= 1
-        elif direction == 'right' and block.grid_x < cols - block.size_x:
+        elif direction == 'right' and block.grid_x < self.cols - block.size_x:
             block.grid_x += 1
         elif direction == 'up' and block.grid_y > 0:
             block.grid_y -= 1
-        elif direction == 'down' and block.grid_y < rows - block.size_y:
+        elif direction == 'down' and block.grid_y < self.rows - block.size_y:
             block.grid_y += 1
 
         # Check for collisions with other blocks
@@ -277,20 +280,21 @@ class Game:
         # Target position
         red_block = self.state[0]
         # Return the win state
-        return all(pos in target_positions for pos in red_block.get_positions())
-
+        return all(pos in self.target_positions for pos in red_block.get_positions())
 
     def draw(self):
         self.screen.fill(GRAY)
-        pygame.draw.rect(self.screen, WHITE, playable_area)
+        pygame.draw.rect(self.screen, WHITE, self.playable_area)
         # Draw the grid
-        for i in range(cols):
-            for j in range(rows):
-                rect = pygame.Rect(playable_x + i * cell_width, playable_y + j * cell_height, cell_width, cell_height)
+        for i in range(self.cols):
+            for j in range(self.rows):
+                rect = pygame.Rect(self.playable_x + i * self.cell_width, self.playable_y + j * self.cell_height,
+                                   self.cell_width, self.cell_height)
                 pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)
         # Draw all blocks in the game state
         for block in self.state:
-            block.draw(self.screen)
+            block.draw(self.screen, self.playable_x, self.playable_y, self.cell_width,
+                       self.cell_height)  # Pass parameters
         # Draw the move counter
         self.draw_move_counter()
         pygame.display.flip()

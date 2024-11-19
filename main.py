@@ -1,3 +1,5 @@
+# [1/5 MAIN.PY]
+
 import pygame
 import sys
 from menu import Menu
@@ -8,14 +10,11 @@ def main():
     pygame.init()
 
     pygame.mixer.init()    # Initialize the mixer
-
-    # screen_width, screen_height = 1536, 864
     screen_width, screen_height = 1920, 1080
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Klotski Game")
 
     menu = Menu(screen)
-    game = Game()
 
     while True:
         for event in pygame.event.get():
@@ -25,6 +24,9 @@ def main():
 
             menu_action = menu.handle_event(event)
             if menu_action == "start":
+                # Get the current board size from the menu
+                cols, rows = menu.board_sizes[menu.current_board_size_index]
+                game = Game(cols, rows)  # Pass the selected board size to the Game instance
                 # Run the game (player solver)
                 game.run()
 
