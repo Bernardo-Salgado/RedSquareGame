@@ -1,0 +1,13 @@
+sick_quack.wav
+Cartoon - Duck Quack by Breviceps -- https://freesound.org/s/445960/ -- License: Creative Commons 0
+
+quack.wav
+Quack.wav by Gamezger -- https://freesound.org/s/398088/ -- License: Attribution 3.0
+
+swirls:
+
+Water Swirl, Small by InspectorJ -- https://freesound.org/people/InspectorJ/packs/22432/ -- License: Attribution 4.0
+
+ducksong:
+
+Music by <a href="https://pixabay.com/users/audiocoffee-27005420/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=113996">Denys Kyshchuk</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=113996">Pixabay</a>

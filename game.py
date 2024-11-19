@@ -132,7 +132,7 @@ class Game:
         # Define the initial state of the game
         return [
             Block(0, 1, 2, 2),  # Sick red duck
-            Block(3, 2, 1, 1),  # Healthy small duck
+            Block(2, 1, 1, 1),  # Healthy small duck
             Block(1, 0, 2, 1),  # Horizontal duck
             Block(4, 0, 1, 2)  # Vertical duck
             # Add other blocks as needed

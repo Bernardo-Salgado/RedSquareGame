@@ -8,6 +8,7 @@ from end import EndMenu
 import time
 import psutil
 import os
+import gc
 
 class Solver:
     def __init__(self, game):
@@ -320,6 +321,9 @@ class Solver:
 
     def track_solver(self, solver_type, solver_name, *solver_args):
         print(f"Starting {solver_name}...")
+
+        #Collect garbage to avoid negative memory usage
+        gc.collect()
 
         # Start time and memory tracking
         start_time = time.time()

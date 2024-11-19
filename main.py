@@ -9,7 +9,8 @@ def main():
 
     pygame.mixer.init()    # Initialize the mixer
 
-    screen_width, screen_height = 1536, 864
+    # screen_width, screen_height = 1536, 864
+    screen_width, screen_height = 1920, 1080
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Klotski Game")
 
