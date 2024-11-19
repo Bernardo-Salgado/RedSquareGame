@@ -304,7 +304,7 @@ class Solver:
             self.game.state = state  # Update game state to the current step
             self.game.draw()  # Redraw the screen
             self.game.update()  # Check for win and update game state
-            pygame.time.wait(500)  # Wait for 500ms before the next step
+            pygame.time.wait(250)  # Wait before the next step
             pygame.display.flip()
 
             # Increment the move count in the Game instance

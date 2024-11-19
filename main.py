@@ -35,6 +35,8 @@ def main():
                 cols, rows = menu.board_sizes[menu.current_board_size_index]
                 game = Game(cols, rows)  # Pass the selected board size to the Game instance
 
+                menu.show_solving_message() # Solving window
+
                 # Initialize the game and the solver
                 solver = Solver(game)
                 # UNCOMMENT A SPECIFIC SOLVER
@@ -44,10 +46,10 @@ def main():
 
                 # Run the DFS solver to find the solution path
                 max_depth = 10
-                # solver.track_solver(lambda: solver.dfs(max_depth), 'DFS')
+                solver.track_solver(lambda: solver.dfs(max_depth), 'DFS')
 
                 # Run the IDS solver to find the solution path
-                solver.track_solver(solver.ids, 'IDS')
+                #solver.track_solver(solver.ids, 'IDS')
 
                 # Run the greedy solver to find the solution path with different heuristics
                 # solver.track_solver(lambda: solver.greedy_search(solver.manhattan), 'Greedy Search with Manhattan')

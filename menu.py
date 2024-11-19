@@ -101,3 +101,11 @@ class Menu:
                     sys.exit()
 
         return None
+
+    def show_solving_message(self):
+        font = pygame.font.SysFont(None, 60)
+        solving_text = font.render("Solving...", True, (100, 100, 100))
+        text_rect = solving_text.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
+        self.screen.fill((246, 221, 100))
+        self.screen.blit(solving_text, text_rect)
+        pygame.display.flip()
