@@ -51,9 +51,11 @@ class Block:
         self.image = self.assign_image()
 
     @classmethod
-    def load_images(cls, small_duck_image, red_duck_image):
+    def load_images(cls, small_duck_image, red_duck_image, hor_duck_image, ver_duck_image):
         cls.small_duck_image = small_duck_image
         cls.red_duck_image = red_duck_image
+        cls.hor_duck_image = hor_duck_image  # Add horizontal duck image
+        cls.ver_duck_image = ver_duck_image  # Add vertical duck image
 
     def get_positions(self):
         # Return the space occupied by the block of size: size_x x size_y
@@ -64,6 +66,10 @@ class Block:
             return self.small_duck_image
         elif self.size_x == 2 and self.size_y == 2:
             return self.red_duck_image
+        elif self.size_x == 2 and self.size_y == 1:
+            return Block.hor_duck_image  # Use the horizontal duck image
+        elif self.size_x == 1 and self.size_y == 2:
+            return Block.ver_duck_image  # Use the vertical duck image
         return None  # Return None if no image is assigned
 
     def draw(self, surface):
@@ -94,8 +100,14 @@ class Game:
         self.small_duck_image = pygame.image.load('img/smallduck.png').convert_alpha()
         self.small_duck_image = pygame.transform.scale(self.small_duck_image, (cell_width * 1, cell_height * 1))
 
+        # Load horizontal and vertical duck images
+        self.hor_duck_image = pygame.image.load('img/horduck.png').convert_alpha()
+        self.hor_duck_image = pygame.transform.scale(self.hor_duck_image, (cell_width * 2, cell_height * 1))
+        self.ver_duck_image = pygame.image.load('img/verduck.png').convert_alpha()
+        self.ver_duck_image = pygame.transform.scale(self.ver_duck_image, (cell_width * 1, cell_height * 2))
+
         # Load images into Block class
-        Block.load_images(self.small_duck_image, self.red_duck_image)
+        Block.load_images(self.small_duck_image, self.red_duck_image, self.hor_duck_image, self.ver_duck_image)
 
         # Load sounds
         self.quack_sounds = [pygame.mixer.Sound(f'audio/quack_{i}.wav') for i in range(10)]
@@ -120,7 +132,9 @@ class Game:
         # Define the initial state of the game
         return [
             Block(0, 1, 2, 2),  # Sick red duck
-            Block(3, 2, 1, 1) #Healthy ducks
+            Block(3, 2, 1, 1),  # Healthy small duck
+            Block(1, 0, 2, 1),  # Horizontal duck
+            Block(4, 0, 1, 2)  # Vertical duck
             # Add other blocks as needed
         ]
 
