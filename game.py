@@ -131,14 +131,56 @@ class Game:
         self.rows = rows
 
     def create_initial_state(self):
-        # Define the initial state of the game
-        return [
-            Block(0, 1, 2, 2),  # Sick red duck
-            Block(2, 1, 1, 1),  # Healthy small duck
-            Block(1, 0, 2, 1),  # Horizontal duck
-            Block(4, 0, 1, 2)  # Vertical duck
-            # Add other blocks as needed
-        ]
+        # Manual state
+        # return [
+        #     Block(0, 1, 2, 2),  # Sick red duck
+        #     Block(2, 1, 1, 1),  # Healthy small duck
+        #     Block(1, 0, 2, 1),  # Horizontal duck
+        #     Block(4, 0, 1, 2)  # Vertical duck
+        #     # Add other blocks as needed
+        # ]
+        return self.create_random_initial_state(self.cols, self.rows)
+
+    def create_random_initial_state(self, cols, rows):
+        blocks = []
+        # Create the first 2x2 block (red duck)
+        red_duck_x = random.randint(0, cols - 2)  # Ensure it fits within the grid
+        red_duck_y = random.randint(0, rows - 2)  # Ensure it fits within the grid
+        blocks.append(Block(red_duck_x, red_duck_y, 2, 2))
+
+        for i in range(1, 4):
+            if i < 3:
+                size_x = random.choice([1, 2])
+                size_y = 2 if size_x == 1 else 1
+            else:
+                size_x = random.choice([1, 2, 1])
+                size_y = random.choice([2, 1, 1]) if size_x != 1 else 1
+
+            # Prevent creating another 2x2 block
+            while size_x == 2 and size_y == 2:
+                size_x = random.choice([1, 2])
+                size_y = 2 if size_x == 1 else 1
+
+            placed = False
+            while not placed:
+                grid_x = random.randint(0, cols - size_x)
+                grid_y = random.randint(0, rows - size_y)
+                new_block = Block(grid_x, grid_y, size_x, size_y)
+
+                if not self.check_collision(new_block, blocks):
+                    blocks.append(new_block)
+                    placed = True
+
+        free_spaces = random.randint(4, 6)
+        while self.count_free_spaces(blocks, cols, rows) > free_spaces:
+            grid_x = random.randint(0, cols - 1)
+            grid_y = random.randint(0, rows - 1)
+            new_block = Block(grid_x, grid_y, 1, 1)
+
+            if not self.check_collision(new_block, blocks):
+                blocks.append(new_block)
+
+        return blocks
 
     def reset(self):
         # Reset the current state to the initial state
@@ -147,6 +189,21 @@ class Game:
         self.start_pos = None
         self.move_count = 0
         self.game_won = False
+
+
+    def check_collision(self, new_block, existing_blocks):
+        occupied_positions = set()
+        for block in existing_blocks:
+            occupied_positions.update(block.get_positions())
+        return any(pos in occupied_positions for pos in new_block.get_positions())
+
+    def count_free_spaces(self, blocks, cols, rows):
+        occupied_positions = set()
+        for block in blocks:
+            occupied_positions.update(block.get_positions())
+
+        total_positions = cols * rows
+        return total_positions - len(occupied_positions)
 
     def run(self):
         end_menu = EndMenu(self.screen, self)  # Pass the Game instance to EndMenu
