@@ -62,7 +62,7 @@ class Solver:
         return []
 
     # Perform DFS to find the shortest path to the goal state with a depth limit
-    def dfs(self, max_depth=6):
+    def dfs(self, max_depth=7):
         # Initialize with the initial state as the starting path
         initial_path = [self.initial_state]
 
@@ -346,7 +346,7 @@ class Solver:
         # Calculate elapsed time and memory usage
         elapsed_time = time.time() - start_time
         end_memory = process.memory_info().rss  # Memory usage after execution
-        memory_used = (end_memory - start_memory) / 1024  # Convert to KB
+        memory_used = abs((end_memory - start_memory) / 1024)  # Convert to KB
 
         # Print solution step by step
         self.print_solution(solution)
