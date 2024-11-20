@@ -171,7 +171,7 @@ class Game:
         blocks.append(Block(red_duck_x, red_duck_y, 2, 2))
 
         for i in range(1, self.cols):
-            if i < 3:
+            if i < (self.cols/2):
                 size_x = random.choice([1, 2])
                 size_y = 2 if size_x == 1 else 1
             else:
