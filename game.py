@@ -170,7 +170,7 @@ class Game:
         red_duck_y = random.randint(0, rows - 2)  # Ensure it fits within the grid
         blocks.append(Block(red_duck_x, red_duck_y, 2, 2))
 
-        for i in range(1, 4):
+        for i in range(1, self.cols):
             if i < 3:
                 size_x = random.choice([1, 2])
                 size_y = 2 if size_x == 1 else 1
