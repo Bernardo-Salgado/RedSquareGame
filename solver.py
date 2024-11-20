@@ -1,3 +1,5 @@
+# [4/5 SOLVER.PY]
+
 from collections import deque
 from game import Game, Block
 import pygame
@@ -59,12 +61,9 @@ class Solver:
         print("No solution found.")
         return []
 
-
     # Perform DFS to find the shortest path to the goal state with a depth limit
-    # Perform DFS to find the shortest path to the goal state with a depth limit
-    def dfs(self, max_depth=6):
+    def dfs(self, max_depth=7):
         # Initialize with the initial state as the starting path
-        initial_state_tuple = self.state_to_tuple(self.initial_state)
         initial_path = [self.initial_state]
 
         # Early check if the initial state is the goal
@@ -72,16 +71,29 @@ class Solver:
             print("Goal reached with 0 moves.")
             return []
 
-        stack = [(self.initial_state, initial_path, 0,
-                  set([initial_state_tuple]))]  # Stack stores state, path, depth, and local visited set
+        # Local visited set, stores states and their depth
+        visited = {}
+
+        # Stack stores state, path, current depth
+        stack = [(self.initial_state, initial_path, 0)]
 
         while stack:
-            # Take current state, path, depth, and visited set
-            current_state, path, depth, visited = stack.pop()
+            # Take current state, path, depth
+            current_state, path, depth = stack.pop()
 
-            # If the current depth reach the maximum depth, skip further exploration
+            # If current depth exceeds max_depth, stop further exploration
             if depth >= max_depth:
                 continue
+
+            # Convert current state to tuple for comparison
+            state_tuple = self.state_to_tuple(current_state)
+
+            # Check if the state was visited at a shallower or equal depth, meaning we don't need to explore it again because there will not be a solution in that state
+            if state_tuple in visited and visited[state_tuple] <= depth:
+                continue  # Ignore this state
+
+            # Mark the state as visited at the current depth
+            visited[state_tuple] = depth
 
             # Check possible moves for each block
             for block in current_state:
@@ -90,20 +102,18 @@ class Solver:
 
                     # If the move is valid
                     if new_state:
-                        state_tuple = self.state_to_tuple(new_state)
+                        new_state_tuple = self.state_to_tuple(new_state)
 
-                        # If the new state has not been visited in the current path
-                        if state_tuple not in visited:
+                        # If the new state has not been visited or the new state appears on the shallower depth then in previous cases, it can be solution found on deeper levels
+                        if new_state_tuple not in visited or visited[new_state_tuple] > depth + 1:
                             new_path = path + [new_state]
-                            visited.add(state_tuple)  # Mark as visited
 
                             # If the goal is reached
                             if self.is_goal_state(new_state):
-                                # Return a solution path
-                                return new_path
+                                return new_path  # Return solution path
 
-                            # Push new state to the stack with updated path, depth, and visited set
-                            stack.append((new_state, new_path, depth + 1, visited.copy()))
+                            # Push new state to the stack with updated path and depth
+                            stack.append((new_state, new_path, depth + 1))
 
         print("No solution found.")
         return []
@@ -294,7 +304,7 @@ class Solver:
             self.game.state = state  # Update game state to the current step
             self.game.draw()  # Redraw the screen
             self.game.update()  # Check for win and update game state
-            pygame.time.wait(500)  # Wait for 500ms before the next step
+            pygame.time.wait(250)  # Wait before the next step
             pygame.display.flip()
 
             # Increment the move count in the Game instance
@@ -336,7 +346,7 @@ class Solver:
         # Calculate elapsed time and memory usage
         elapsed_time = time.time() - start_time
         end_memory = process.memory_info().rss  # Memory usage after execution
-        memory_used = (end_memory - start_memory) / 1024  # Convert to KB
+        memory_used = abs((end_memory - start_memory) / 1024)  # Convert to KB
 
         # Print solution step by step
         self.print_solution(solution)
