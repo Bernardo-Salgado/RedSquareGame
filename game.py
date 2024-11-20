@@ -379,17 +379,18 @@ class Game:
         background_image = pygame.transform.scale(background_image, (self.screen_width, self.screen_height))
         self.screen.blit(background_image, (0, 0))
 
-        pygame.draw.rect(self.screen, WHITE, self.playable_area)
-        # Draw the grid
-        for i in range(self.cols):
-            for j in range(self.rows):
-                rect = pygame.Rect(self.playable_x + i * self.cell_width, self.playable_y + j * self.cell_height,
-                                   self.cell_width, self.cell_height)
-                pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)
+        # pygame.draw.rect(self.screen, WHITE, self.playable_area)
+        # # Draw the grid
+        # for i in range(self.cols):
+        #     for j in range(self.rows):
+        #         rect = pygame.Rect(self.playable_x + i * self.cell_width, self.playable_y + j * self.cell_height,
+        #                            self.cell_width, self.cell_height)
+        #         pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)
         # Draw all blocks in the game state
         for block in self.state:
             block.draw(self.screen, self.playable_x, self.playable_y, self.cell_width,
                        self.cell_height)  # Pass parameters
+
         # Draw the move counter
         self.draw_move_counter()
         pygame.display.flip()
