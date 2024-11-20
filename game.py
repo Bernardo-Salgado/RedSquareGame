@@ -397,8 +397,8 @@ class Game:
 
     def draw_move_counter(self):
         font = pygame.font.SysFont(None, 40)
-        move_text = font.render(f'Moves: {self.move_count}', True, (0, 0, 0))
-        self.screen.blit(move_text, (self.screen_width - 150, 20))
+        move_text = font.render(f'Moves: {self.move_count}', True, (255, 255, 255))
+        self.screen.blit(move_text, (self.screen_width - 250, 20))
 
 if __name__ == "__main__":
     game = Game()
