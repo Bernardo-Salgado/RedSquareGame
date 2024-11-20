@@ -177,6 +177,7 @@ class Game:
     def update(self):
         if self.is_goal_state():
             print("CONGRATULATIONS! You've solved the puzzle!")
+            print("-"*42)
             self.game_won = True  # Set the game_won flag
 
     def handle_event(self, event):

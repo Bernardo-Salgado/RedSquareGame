@@ -189,7 +189,7 @@ class Solver:
         heapq.heappush(prior_queue, (heuristic(self.initial_state), 0, self.initial_state, initial_path))
 
         # Set of visited states to avoid reprocessing
-        visited = set([initial_state_tuple])
+        visited = set(initial_state_tuple)
 
         while prior_queue:
             # Get the state with the lowest f(n)

@@ -33,7 +33,7 @@ class Solver:
             print("Goal reached with 0 moves.")
             return []
 
-        visited = set([initial_state_tuple]) # Set initial state as visited
+        visited = set([initial_state_tuple]) # Set initial state as visited, [] to treat state as an individual object in set
         queue = deque([(self.initial_state, initial_path)]) # Queue stores state and path
 
         while queue:
@@ -58,7 +58,6 @@ class Solver:
                                 return new_path
                             # Adds new state and the path to the queue
                             queue.append((new_state, new_path))
-        print("No solution found.")
         return []
 
     # Perform DFS to find the shortest path to the goal state with a depth limit
@@ -114,10 +113,7 @@ class Solver:
 
                             # Push new state to the stack with updated path and depth
                             stack.append((new_state, new_path, depth + 1))
-
-        print("No solution found.")
         return []
-
 
     # Perform Iterative Deepening Search (IDS) to find the shortest path to the goal state
     def ids(self):
@@ -128,7 +124,6 @@ class Solver:
             if solution:
                 return solution
             max_depth += 1
-
 
     # Perform greedy search to find the shortest path to the goal state
     def greedy_search(self, heuristic):
@@ -168,9 +163,7 @@ class Solver:
                                 return new_path
                             # Push the new state and its heuristic value to the priority queue, path as well
                             heapq.heappush(prior_queue, (heuristic(new_state), new_state, new_path))
-        print("No solution found.")
         return []
-
 
     # Perform A* search to find the shortest path to the goal state
     def a_star_search(self, heuristic):
@@ -214,7 +207,6 @@ class Solver:
                             f_n_new = g_n_new + heuristic(new_state)
                             # Add the new state to the open list with its f(n)
                             heapq.heappush(prior_queue, (f_n_new, g_n_new, new_state, new_path))
-        print("No solution found.")
         return []
 
     def manhattan(self, state):
@@ -242,8 +234,8 @@ class Solver:
         return distance
 
     def state_to_tuple(self, state):
-        # Converts the state to a tuple for hashing and comparison
-        return tuple(sorted((block.grid_x, block.grid_y, block.size_x, block.size_y) for block in state))
+        # Converts the state to a tuple for comparison visited states
+        return tuple(sorted((block.grid_x, block.grid_y, block.size_x, block.size_y) for block in state)) # sorting to handle same states but different blocks order
 
     def is_goal_state(self, state):
         # Checks if the current state matches the target goal configuration
@@ -293,7 +285,7 @@ class Solver:
             print(f"Step {step}:")
             for block in state:
                 print(f"Block at ({block.grid_x}, {block.grid_y}) with size ({block.size_x}, {block.size_y})")
-            print("-" * 30)
+            print('-'*30)
 
     def animate_solution(self, solution_path):
         # Create an instance of EndMenu with the Game instance
@@ -331,7 +323,6 @@ class Solver:
 
     def track_solver(self, solver_type, solver_name, *solver_args):
         print(f"Starting {solver_name}...")
-        print(*solver_args)
 
         #Collect garbage to avoid negative memory usage
         gc.collect()
@@ -355,7 +346,10 @@ class Solver:
         # Output results
         print(f"{solver_name} completed in {elapsed_time:.4f} seconds.")
         print(f"{solver_name} used {memory_used:.4f} KB during execution.")
-        print(f"Solution found in {len(solution) - 1} moves.")
+        if len(solution) == 0:
+            print('No solution found.')
+        else:
+            print(f"Solution found in {len(solution) - 1} moves.")
 
         # Animate solution step by step
         self.animate_solution(solution)
