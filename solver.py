@@ -331,6 +331,7 @@ class Solver:
 
     def track_solver(self, solver_type, solver_name, *solver_args):
         print(f"Starting {solver_name}...")
+        print(*solver_args)
 
         #Collect garbage to avoid negative memory usage
         gc.collect()

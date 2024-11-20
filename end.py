@@ -31,10 +31,16 @@ class EndMenu:
         self.screen.fill((169, 169, 169))  # Fill with grey
 
         # Draw the solved message using move_count from the Game instance
-        solved_text = f"Solved in {self.game.move_count} moves"
-        text_surface = self.font.render(solved_text, True, (255, 255, 255))
-        text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, 100))  # Adjust the position as needed
-        self.screen.blit(text_surface, text_rect)
+        if (self.game.move_count == 0):
+            solved_text = 'Unsolved'
+            text_surface = self.font.render(solved_text, True, (255, 255, 255))
+            text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, 100))  # Adjust the position as needed
+            self.screen.blit(text_surface, text_rect)
+        else:
+            solved_text = f"Solved in {self.game.move_count} moves"
+            text_surface = self.font.render(solved_text, True, (255, 255, 255))
+            text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, 100))  # Adjust the position as needed
+            self.screen.blit(text_surface, text_rect)
 
         # Draw the options
         for i, option in enumerate(self.options):

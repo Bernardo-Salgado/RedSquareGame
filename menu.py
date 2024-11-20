@@ -30,13 +30,7 @@ class Menu:
         # Music state
         self.music_on = True  # Music starts as ON
 
-        # Input fields for max_depth of DFS
-
-        self.max_depth = None  # Variable to store max_depth input
-
-        # self.input_active = False  # Flag to track if input is active
-
-        # # self.input_box = pygame.Rect(self.screen.get_width() // 2 - 100, 650 + 3 * 48 - 20, 200, 45)  # Position of the input box
+        self.max_depth = None  # Variable to store max_depth input for DFS
 
         self.input_text = ""  # To store the input text
 
@@ -45,15 +39,11 @@ class Menu:
         # Blit the image
         self.screen.blit(self.menu_image, (0, 0))  # Draw the image at the top-left corner
         mouse_x, mouse_y = pygame.mouse.get_pos()
-        # print("pygame.mouse.get_posssssssssssssss: ", pygame.mouse.get_pos())
 
         for i, option in enumerate(self.options):
             # Draw input popup for DFS max_depth
-
             if i == 2 and self.selected_option == 2: # If DFS is selected and input is active
-
                 self.draw_input_popup(mouse_x, mouse_y)
-            
             elif i == 4 and self.selected_option == 4:  # Greedy Search
                 self.draw_popup(self.screen.get_width() // 2 + 150, 650 + i * 48 - 20, self.greedy_options, mouse_x, mouse_y)
             elif i == 5 and self.selected_option == 5:  # A*
@@ -69,7 +59,6 @@ class Menu:
             text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, 650 + i * 48))
             self.screen.blit(text_surface, text_rect)
         pygame.display.flip()
-
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEMOTION:
@@ -87,33 +76,9 @@ class Menu:
                     return "start"
                 elif self.selected_option == 1:  # BFS
                     return "BFS"
-                # elif self.selected_option == 2:  # DFS
-
-
-                    # if event.type == pygame.KEYDOWN:
-                    #     if event.key == pygame.K_BACKSPACE:
-                    #         self.input_text = self.input_text[:-1]  # Remove last character
-                    #     elif event.unicode.isdigit():
-                    #         self.input_text += event.unicode  # Add digit to input text
-
-                    # # Check if the submit button for DFS was clicked
-                    # submit_button_rect = pygame.Rect(self.screen.get_width() // 2 + 200, 650 + 2 * 48 + 90, 100, 40)
-                    # if submit_button_rect.collidepoint(event.pos):  # Submit button click
-                    #     try:
-                    #         # Parse the input value as an integer and update max_depth
-                    #         self.max_depth = int(self.input_text)
-                    #         print(f"Max Depth for DFS: {self.max_depth}")  # Debug print
-                    #         return "DFS"  # Trigger DFS action
-                    #     except ValueError:
-                    #         print("Invalid input. Please enter an integer.")
-
-
                 elif self.selected_option == 3:  # IDS
                     return "IDS"
-                
-
                 elif self.selected_option == 4:  # Greedy Search, handle nested options
-
                     # Check which greedy option is selected
 
                     for i, option in enumerate(self.greedy_options):
@@ -125,7 +90,6 @@ class Menu:
                             return option  # Return the specific greedy search option selected
 
                 elif self.selected_option == 5:  # A*, handle nested options
-
                     # Check which A* option is selected
 
                     for i, option in enumerate(self.astar_options):
@@ -136,8 +100,6 @@ class Menu:
 
                             print (option)
                             return option  # Return the specific A* option selected
-                        
-
                 elif self.selected_option == 6:  # Board size
                     # Cycle through board sizes
                     self.current_board_size_index = (self.current_board_size_index + 1) % len(self.board_sizes)
@@ -163,76 +125,9 @@ class Menu:
                     return "start"
                 elif self.selected_option == 1:  # BFS
                     return "BFS"
-                # elif self.selected_option == 2:  # DFS
-
-                #     if event.type == pygame.KEYDOWN:
-                #         if event.key == pygame.K_BACKSPACE:
-                #             self.input_text = self.input_text[:-1]  # Remove last character
-                #         elif event.unicode.isdigit():
-                #             self.input_text += event.unicode  # Add digit to input text
-
-                #     # Check if the submit button for DFS was clicked
-                #     submit_button_rect = pygame.Rect(self.screen.get_width() // 2 + 200, 650 + 2 * 48 + 90, 100, 40)
-                #     if submit_button_rect.collidepoint(event.pos):  # Submit button click
-                #         try:
-                #             cols, rows = self.board_sizes[self.current_board_size_index]
-                #             game = Game(cols, rows)  # Pass the selected board size to the Game instance
-
-                #             self.show_solving_message() # Solving window
-
-                #             # Initialize the game and the solver
-                #             solver = Solver(game)
-
-                #             max_depth = self.get_dfs_depth()
-                #             # Run the BFS solver to find the solution path
-                #             solver.track_solver(lambda: solver.dfs(max_depth), 'BFS')
-
-                #         except ValueError:
-                #             print("Invalid input. Please enter an integer.")
-                    
-                    # if event.type == pygame.KEYDOWN:
-                    #     if event.key == pygame.K_RETURN:
-                    #         if self.dfs_depth_input:  # If there's input
-                    #             self.current_action = "DFS"
-                    #             return self.current_action
-                    #     elif event.key == pygame.K_BACKSPACE:
-                    #         self.dfs_depth_input = self.dfs_depth_input[:-1]
-                    #     else:
-                    #         self.dfs_depth_input += event.unicode
-
-                        # if event.type == pygame.KEYDOWN:
-                        #     if event.key == pygame.K_BACKSPACE:
-                        #         self.input_text = self.input_text[:-1]  # Remove last character
-                        #     elif event.key == pygame.K_RETURN:
-                        #         try:
-                        #             # Parse the input value as an integer and update max_depth
-                        #             self.max_depth = int(self.input_text)
-                        #             print(f"Max Depth for DFS: {self.max_depth}")  # Debug print
-                        #             return "DFS"
-                        #             # self.input_active = False  # Disable input after entering value
-                        #             # return self.max_depth  # Return the max_depth to use in the DFS algorithm
-                        #         except ValueError:
-                        #             print("Invalid input. Please enter an integer.")
-                        #     elif event.unicode.isdigit():
-                        #         self.input_text += event.unicode  # Add digit to input text
-                    
-                    return "DFS"
-                    
-                    
-                    # if not self.input_active:
-
-                    #     self.input_active = True  # Enable input for max_depth
-
-                    # else:
-                    #     print("self.get_dfs_depth()MMMMMMMMMMMMM: ", self.get_dfs_depth())
-                    #     return self.get_dfs_depth()  # Return the max_depth after input is given
-                    
                 elif self.selected_option == 3:  # IDS
                     return "IDS"
-                
-
                 elif self.selected_option == 4:  # Greedy Search, handle nested options
-
                     # Check which greedy option is selected
 
                     for i, option in enumerate(self.greedy_options):
@@ -242,9 +137,7 @@ class Menu:
                         if option_rect.collidepoint(event.pos):  # Check if mouse is over a specific option
                             print (option)
                             return option  # Return the specific greedy search option selected
-
                 elif self.selected_option == 5:  # A*, handle nested options
-
                     # Check which A* option is selected
 
                     for i, option in enumerate(self.astar_options):
@@ -255,8 +148,6 @@ class Menu:
 
                             print (option)
                             return option  # Return the specific A* option selected
-                        
-                        
                 elif self.selected_option == 6:  # Board size
                     # Cycle through board sizes
                     self.current_board_size_index = (self.current_board_size_index + 1) % len(self.board_sizes)
@@ -271,11 +162,10 @@ class Menu:
                 elif self.selected_option == 8:  # Exit
                     pygame.quit()
                     sys.exit()
-
         return None
-    
+
+    # Draws a popup box with given options at (x, y) and highlights the hovered option
     def draw_popup(self, x, y, options, mouse_x, mouse_y):
-        """Draws a popup box with given options at (x, y) and highlights the hovered option."""
         # Calculate the width of the longest option
         max_text_width = max(self.font.size(option)[0] for option in options)
         box_width = max_text_width + 20  # Add padding to the width
@@ -308,9 +198,8 @@ class Menu:
             text_rect = text_surface.get_rect(topleft=(x + 10, y + 10 + i * 45))  # Add padding
             self.screen.blit(text_surface, text_rect)
 
-
+    # Draws a popup input box for entering the max_depth of DFS
     def draw_input_popup(self, mouse_x, mouse_y):
-        """Draws a popup input box for entering the max_depth of DFS."""
         # Define the dimensions of the input popup
         box_width = 300
         box_height = 100
@@ -371,15 +260,9 @@ class Menu:
 
                             self.max_depth = int(self.input_text)
 
-                            # max_depth = self.get_dfs_depth()
-                            # Run the BFS solver to find the solution path
+                            # Run the DFS solver to find the solution path
                             solver.track_solver(lambda: solver.dfs(self.max_depth), 'DFS')
 
-
-                            # # Parse the input value as an integer and update max_depth
-                            # self.max_depth = int(self.input_text)
-                            # print(f"Max Depth for DFS: {self.max_depth}")  # Debug print
-                            # return "DFS"  # Submit the action
                         except ValueError:
                             print("Invalid input. Please enter an integer.")
 
@@ -404,7 +287,6 @@ class Menu:
                     except ValueError:
                         print("Invalid input. Please enter an integer.")
 
-        
         # Highlight the input box if the mouse is over it
         if input_box_rect.collidepoint(mouse_x, mouse_y):
             pygame.draw.rect(self.screen, (255, 255, 255), input_box_rect, 2)  # White border on hover
@@ -412,17 +294,6 @@ class Menu:
         # Highlight the submit button if the mouse is over it
         if submit_button_rect.collidepoint(mouse_x, mouse_y):
             pygame.draw.rect(self.screen, (0, 200, 0), submit_button_rect, 2)  # Darker green on hover
-
-
-    ##PROLLY UNCOMMENT THIS -->
-    # def get_dfs_depth(self):
-    #     # Try to convert the input to an integer
-    #     try:
-    #         return int(self.dfs_depth_input) if self.dfs_depth_input else None
-    #     except ValueError:
-    #         return None
-    ##PROLLY UNCOMMENT THIS^^
-
 
     def show_solving_message(self):
         font = pygame.font.SysFont(None, 60)
