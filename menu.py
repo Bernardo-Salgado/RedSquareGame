@@ -24,7 +24,7 @@ class Menu:
         self.menu_image = pygame.transform.scale(self.menu_image, (1920, 1080))  # Fitting the screen
 
         # Define the board sizes
-        self.board_sizes = [(6, 4), (10, 6), (12, 6)]
+        self.board_sizes = [(5, 4), (6, 4), (8, 6)]
         self.current_board_size_index = 0
 
         # Music state

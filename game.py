@@ -82,7 +82,7 @@ class Game:
         self.playable_width = self.cols * self.tile_size
         self.playable_height = self.rows * self.tile_size
         self.playable_x = (1920 - self.playable_width) // 2
-        self.playable_y = (1080 - self.playable_height) // 2
+        self.playable_y = (1080 - self.playable_height) // 2 + 36
         self.playable_area = pygame.Rect(self.playable_x, self.playable_y, self.playable_width, self.playable_height)
 
         # Define target positions
@@ -99,6 +99,7 @@ class Game:
 
         # Define a named tuple for positions
         self.Position = namedtuple('Position', ['x', 'y'])
+
 
         # Load the duck images
         self.red_duck_image = pygame.image.load('img/redduck.png').convert_alpha()
@@ -129,6 +130,27 @@ class Game:
 
         self.cols = cols
         self.rows = rows
+
+        # Load background images
+        self.background_images = {
+            'small': [pygame.image.load(f'img/boards/board_s_{i}.png').convert() for i in range(1, 5)],
+            'medium': [pygame.image.load(f'img/boards/board_m_{i}.png').convert() for i in range(1, 5)],
+            'large': [pygame.image.load(f'img/boards/board_l_{i}.png').convert() for i in range(1, 5)],
+        }
+
+        self.current_background = None
+        self.background_frame = 0
+        self.background_timer = 0
+        self.frame_duration = 500  # milliseconds
+        self.set_background()
+
+    def set_background(self):
+        if self.cols == 5 and self.rows == 4:
+            self.current_background = self.background_images['small']
+        elif self.cols == 6 and self.rows == 4:
+            self.current_background = self.background_images['medium']
+        elif self.cols == 8 and self.rows == 6:
+            self.current_background = self.background_images['large']
 
     def create_initial_state(self):
         # Manual state
@@ -206,6 +228,9 @@ class Game:
         return total_positions - len(occupied_positions)
 
     def run(self):
+
+        self.last_time = pygame.time.get_ticks()  # Initialize last_time for animation
+
         end_menu = EndMenu(self.screen, self)  # Pass the Game instance to EndMenu
         while True:
             for event in pygame.event.get():
@@ -341,7 +366,19 @@ class Game:
         return all(pos in self.target_positions for pos in red_block.get_positions())
 
     def draw(self):
-        self.screen.fill(GRAY)
+        # Animate background
+        self.background_timer += pygame.time.get_ticks() - self.last_time
+        self.last_time = pygame.time.get_ticks()
+
+        if self.background_timer > self.frame_duration:
+            self.background_frame = (self.background_frame + 1) % len(self.current_background)
+            self.background_timer = 0
+
+        # Draw the current background frame
+        background_image = self.current_background[self.background_frame]
+        background_image = pygame.transform.scale(background_image, (self.screen_width, self.screen_height))
+        self.screen.blit(background_image, (0, 0))
+
         pygame.draw.rect(self.screen, WHITE, self.playable_area)
         # Draw the grid
         for i in range(self.cols):
