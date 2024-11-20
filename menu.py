@@ -2,6 +2,8 @@
 
 import pygame
 import sys
+from game import Game
+from solver import Solver
 
 # Define configuration variables
 setup_cols = 6
@@ -85,62 +87,27 @@ class Menu:
                     return "start"
                 elif self.selected_option == 1:  # BFS
                     return "BFS"
-                elif self.selected_option == 2:  # DFS
-                    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_BACKSPACE:
-                            self.input_text = self.input_text[:-1]  # Remove last character
-                        elif event.unicode.isdigit():
-                            self.input_text += event.unicode  # Add digit to input text
+                # elif self.selected_option == 2:  # DFS
 
-                    # Check if the submit button for DFS was clicked
-                    submit_button_rect = pygame.Rect(self.screen.get_width() // 2 + 200, 650 + 2 * 48 + 90, 100, 40)
-                    if submit_button_rect.collidepoint(event.pos):  # Submit button click
-                        try:
-                            # Parse the input value as an integer and update max_depth
-                            self.max_depth = int(self.input_text)
-                            print(f"Max Depth for DFS: {self.max_depth}")  # Debug print
-                            return "DFS"  # Trigger DFS action
-                        except ValueError:
-                            print("Invalid input. Please enter an integer.")
 
                     # if event.type == pygame.KEYDOWN:
-                    #     if event.key == pygame.K_RETURN:
-                    #         if self.dfs_depth_input:  # If there's input
-                    #             self.current_action = "DFS"
-                    #             return self.current_action
-                    #     elif event.key == pygame.K_BACKSPACE:
-                    #         self.dfs_depth_input = self.dfs_depth_input[:-1]
-                    #     else:
-                    #         self.dfs_depth_input += event.unicode
+                    #     if event.key == pygame.K_BACKSPACE:
+                    #         self.input_text = self.input_text[:-1]  # Remove last character
+                    #     elif event.unicode.isdigit():
+                    #         self.input_text += event.unicode  # Add digit to input text
 
-                    # if event.type == pygame.KEYDOWN:
-                    #         if event.key == pygame.K_BACKSPACE:
-                    #             self.input_text = self.input_text[:-1]  # Remove last character
-                    #         elif event.key == pygame.K_RETURN:
-                    #             print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+                    # # Check if the submit button for DFS was clicked
+                    # submit_button_rect = pygame.Rect(self.screen.get_width() // 2 + 200, 650 + 2 * 48 + 90, 100, 40)
+                    # if submit_button_rect.collidepoint(event.pos):  # Submit button click
+                    #     try:
+                    #         # Parse the input value as an integer and update max_depth
+                    #         self.max_depth = int(self.input_text)
+                    #         print(f"Max Depth for DFS: {self.max_depth}")  # Debug print
+                    #         return "DFS"  # Trigger DFS action
+                    #     except ValueError:
+                    #         print("Invalid input. Please enter an integer.")
 
-                    #             try:
-                    #                 # Parse the input value as an integer and update max_depth
-                    #                 self.max_depth = int(self.input_text)
-                    #                 print(f"Max Depth for DFS: {self.max_depth}")  # Debug print
-                    #                 return "DFS"
-                    #                 # self.input_active = False  # Disable input after entering value
-                    #                 # return self.max_depth  # Return the max_depth to use in the DFS algorithm
-                    #             except ValueError:
-                    #                 print("Invalid input. Please enter an integer.")
-                    #         elif event.unicode.isdigit():
-                    #             self.input_text += event.unicode  # Add digit to input text
-                    return "DFS"
-                    # if not self.input_active:
 
-                    #     self.input_active = True  # Enable input for max_depth
-
-                    # else:
-
-                    #     print("self.get_dfs_depth()MMMMMMMMMMMMAAAAAAAAAA: ", self.get_dfs_depth())
-                    #     return self.get_dfs_depth()  # Return the max_depth after input is given
-                    
                 elif self.selected_option == 3:  # IDS
                     return "IDS"
                 
@@ -196,24 +163,32 @@ class Menu:
                     return "start"
                 elif self.selected_option == 1:  # BFS
                     return "BFS"
-                elif self.selected_option == 2:  # DFS
+                # elif self.selected_option == 2:  # DFS
 
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_BACKSPACE:
-                            self.input_text = self.input_text[:-1]  # Remove last character
-                        elif event.unicode.isdigit():
-                            self.input_text += event.unicode  # Add digit to input text
+                #     if event.type == pygame.KEYDOWN:
+                #         if event.key == pygame.K_BACKSPACE:
+                #             self.input_text = self.input_text[:-1]  # Remove last character
+                #         elif event.unicode.isdigit():
+                #             self.input_text += event.unicode  # Add digit to input text
 
-                    # Check if the submit button for DFS was clicked
-                    submit_button_rect = pygame.Rect(self.screen.get_width() // 2 + 200, 650 + 2 * 48 + 90, 100, 40)
-                    if submit_button_rect.collidepoint(event.pos):  # Submit button click
-                        try:
-                            # Parse the input value as an integer and update max_depth
-                            self.max_depth = int(self.input_text)
-                            print(f"Max Depth for DFS: {self.max_depth}")  # Debug print
-                            return "DFS"  # Trigger DFS action
-                        except ValueError:
-                            print("Invalid input. Please enter an integer.")
+                #     # Check if the submit button for DFS was clicked
+                #     submit_button_rect = pygame.Rect(self.screen.get_width() // 2 + 200, 650 + 2 * 48 + 90, 100, 40)
+                #     if submit_button_rect.collidepoint(event.pos):  # Submit button click
+                #         try:
+                #             cols, rows = self.board_sizes[self.current_board_size_index]
+                #             game = Game(cols, rows)  # Pass the selected board size to the Game instance
+
+                #             self.show_solving_message() # Solving window
+
+                #             # Initialize the game and the solver
+                #             solver = Solver(game)
+
+                #             max_depth = self.get_dfs_depth()
+                #             # Run the BFS solver to find the solution path
+                #             solver.track_solver(lambda: solver.dfs(max_depth), 'BFS')
+
+                #         except ValueError:
+                #             print("Invalid input. Please enter an integer.")
                     
                     # if event.type == pygame.KEYDOWN:
                     #     if event.key == pygame.K_RETURN:
@@ -373,24 +348,62 @@ class Menu:
         self.screen.blit(submit_text, submit_text_rect)
 
         # Handle user input for the max_depth
-        # for event in pygame.event.get():
-            # if event.type == pygame.KEYDOWN:
-            #     if event.key == pygame.K_BACKSPACE:
-            #         self.input_text = self.input_text[:-1]  # Remove last character
-            #     elif event.unicode.isdigit():
-            #         self.input_text += event.unicode  # Add digit to input text
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    self.input_text = self.input_text[:-1]  # Remove last character
+                elif event.unicode.isdigit():
+                    self.input_text += event.unicode  # Add digit to input text
 
-            # # Check if the Submit button is clicked
-            # if event.type == pygame.MOUSEBUTTONDOWN:
-            #     if event.button == 1:  # Left click
-            #         if submit_button_rect.collidepoint(mouse_x, mouse_y):
-            #             try:
-            #                 # Parse the input value as an integer and update max_depth
-            #                 self.max_depth = int(self.input_text)
-            #                 print(f"Max Depth for DFS: {self.max_depth}")  # Debug print
-            #                 return "DFS"  # Submit the action
-            #             except ValueError:
-            #                 print("Invalid input. Please enter an integer.")
+            # Check if the Submit button is clicked
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left click
+                    if submit_button_rect.collidepoint(mouse_x, mouse_y):
+                        try:
+
+                            cols, rows = self.board_sizes[self.current_board_size_index]
+                            game = Game(cols, rows)  # Pass the selected board size to the Game instance
+
+                            self.show_solving_message() # Solving window
+
+                            # Initialize the game and the solver
+                            solver = Solver(game)
+
+                            self.max_depth = int(self.input_text)
+
+                            # max_depth = self.get_dfs_depth()
+                            # Run the BFS solver to find the solution path
+                            solver.track_solver(lambda: solver.dfs(self.max_depth), 'DFS')
+
+
+                            # # Parse the input value as an integer and update max_depth
+                            # self.max_depth = int(self.input_text)
+                            # print(f"Max Depth for DFS: {self.max_depth}")  # Debug print
+                            # return "DFS"  # Submit the action
+                        except ValueError:
+                            print("Invalid input. Please enter an integer.")
+
+            if event.type == pygame.KEYDOWN:  # Check if a key is pressed
+                if event.key == pygame.K_RETURN:  # Check if the Enter key is pressed
+                    try:
+                        cols, rows = self.board_sizes[self.current_board_size_index]
+                        game = Game(cols, rows)  # Pass the selected board size to the Game instance
+
+                        self.show_solving_message()  # Solving window
+
+                        # Initialize the game and the solver
+                        solver = Solver(game)
+
+                        # Parse the input value as an integer and set max_depth
+                        self.max_depth = int(self.input_text)
+
+                        # Run the DFS solver with the specified max depth
+                        solver.track_solver(lambda: solver.dfs(self.max_depth), 'DFS')
+
+                        print(f"Max Depth for DFS: {self.max_depth}")  # Debug print
+                    except ValueError:
+                        print("Invalid input. Please enter an integer.")
+
         
         # Highlight the input box if the mouse is over it
         if input_box_rect.collidepoint(mouse_x, mouse_y):
