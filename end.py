@@ -32,7 +32,7 @@ class EndMenu:
 
         # Draw the solved message using move_count from the Game instance
         if (self.game.move_count == 0):
-            solved_text = 'Unsolvable, quack!'
+            solved_text = 'Unsolved!'
             text_surface = self.font.render(solved_text, True, (255, 255, 255))
             text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, 100))  # Adjust the position as needed
             self.screen.blit(text_surface, text_rect)
