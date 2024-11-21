@@ -166,7 +166,7 @@ class Game:
     def create_random_initial_state(self, cols, rows):
         blocks = []
         # Create the first 2x2 block (red duck)
-        red_duck_x = random.randint(0, cols - 2)  # Ensure it fits within the grid
+        red_duck_x = random.randint(0, 1)  # Ensure it's to the left of the grid
         red_duck_y = random.randint(0, rows - 2)  # Ensure it fits within the grid
         blocks.append(Block(red_duck_x, red_duck_y, 2, 2))
 
@@ -397,9 +397,9 @@ class Game:
         pygame.time.Clock().tick(60)
 
     def draw_move_counter(self):
-        font = pygame.font.SysFont(None, 40)
+        font = pygame.font.SysFont(None, 50)
         move_text = font.render(f'Moves: {self.move_count}', True, (255, 255, 255))
-        self.screen.blit(move_text, (self.screen_width - 250, 20))
+        self.screen.blit(move_text, (self.screen_width - 240, 60))
 
 if __name__ == "__main__":
     game = Game()
