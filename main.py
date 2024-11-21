@@ -12,7 +12,7 @@ from solver import Solver
 def main():
     pygame.init()
 
-    pygame.mixer.init()    # Initialize the mixer
+    pygame.mixer.init()    # Initialize the mixer (to have sounds inside the game)
     screen_width, screen_height = 1920, 1080
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Red Duck Game")
@@ -30,7 +30,7 @@ def main():
                 # Get the current board size from the menu
                 cols, rows = menu.board_sizes[menu.current_board_size_index]
                 game = Game(cols, rows)  # Pass the selected board size to the Game instance
-                # Run the game (player solver)
+                # Run the game (human solving)
                 game.run()
 
             elif menu_action == "BFS":

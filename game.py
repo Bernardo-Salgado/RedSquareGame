@@ -3,7 +3,6 @@
 import sys
 import pygame
 import random
-from collections import namedtuple
 from end import EndMenu
 
 # Define colors (RGB)
@@ -12,13 +11,10 @@ RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 GRAY = (200, 200, 200)
 
-# Define a named tuple for positions
-Position = namedtuple('Position', ['x', 'y'])
-
 
 class Block:
 
-    # Class-level attributes for images
+    # Class attributes for images
     small_duck_image = None
     red_duck_image = None
 
@@ -34,10 +30,10 @@ class Block:
         cls.small_duck_image = small_duck_image
         cls.red_duck_image = red_duck_image
         cls.hor_duck_image = hor_duck_image  # Add horizontal duck image
-        cls.ver_duck_image = ver_duck_image  # Add vertical duck image
+        cls.ver_duck_image = ver_duck_image  # Vertical duck image
 
     def get_positions(self):
-        # Return the space occupied by the block of size: size_x x size_y
+        # Return the space occupied by the block of size: size_x by size_y
         return [(self.grid_x + dx, self.grid_y + dy) for dx in range(self.size_x) for dy in range(self.size_y)]
 
     def assign_image(self):
@@ -48,7 +44,7 @@ class Block:
         elif self.size_x == 2 and self.size_y == 1:
             return Block.hor_duck_image  # Use the horizontal duck image
         elif self.size_x == 1 and self.size_y == 2:
-            return Block.ver_duck_image  # Use the vertical duck image
+            return Block.ver_duck_image  # Use vertical duck 
         return None  # Return None if no image is assigned
 
     def draw(self, surface, playable_x, playable_y, cell_width, cell_height):
@@ -62,7 +58,7 @@ class Block:
 
     def __lt__(self, other):
         # Block comparison basing on their position (top left coordinates)
-        if self.grid_x == other.grid_x: # if x is the same
+        if self.grid_x == other.grid_x: # if x cordinate is the same
             return self.grid_y < other.grid_y
         return self.grid_x < other.grid_x
 
@@ -75,7 +71,7 @@ class Game:
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
         pygame.display.set_caption("Klotski Game")
 
-        # Define a fixed tile size
+        # fixed tile size
         self.tile_size = 128
 
         # Calculate the playable area based on the number of columns and rows
@@ -85,7 +81,7 @@ class Game:
         self.playable_y = (1080 - self.playable_height) // 2 + 36
         self.playable_area = pygame.Rect(self.playable_x, self.playable_y, self.playable_width, self.playable_height)
 
-        # Define target positions
+        # Define target positions (mid right)
         self.target_positions = [
             (self.cols - 2, self.rows // 2 - 1),
             (self.cols - 1, self.rows // 2 - 1),
@@ -93,13 +89,9 @@ class Game:
             (self.cols - 1, self.rows // 2)
         ]
 
-        # Define cell dimensions
+        # Cell dimensions
         self.cell_width = self.tile_size
         self.cell_height = self.tile_size
-
-        # Define a named tuple for positions
-        self.Position = namedtuple('Position', ['x', 'y'])
-
 
         # Load the duck images
         self.red_duck_image = pygame.image.load('img/redduck.png').convert_alpha()
@@ -123,7 +115,7 @@ class Game:
 
         # Load and play music
         pygame.mixer.music.load('audio/duckmusic.mp3')  # Load the music file
-        pygame.mixer.music.play(-1)  # Play the music on loop (-1 means loop indefinitely)
+        pygame.mixer.music.play(-1)  # Play the music on loop (-1 means loop forever)
 
         self.initial_state = self.create_initial_state()  # Create initial state
         self.reset()  # Call reset to initialize the game state
@@ -155,12 +147,26 @@ class Game:
     def create_initial_state(self):
         # Manual state
         # return [
-        #     Block(0, 1, 2, 2),  # Sick red duck
-        #     Block(2, 1, 1, 1),  # Healthy small duck
-        #     Block(1, 0, 2, 1),  # Horizontal duck
-        #     Block(4, 0, 1, 2)  # Vertical duck
-        #     # Add other blocks as needed
+            # Block(0, 1, 2, 2),  # Sick red duck
+            # Block(2, 1, 1, 1),  # Healthy small duck
+            # Block(1, 0, 2, 1),  # Horizontal duck
+            # Block(4, 0, 1, 2)  # Vertical duck
+            # # Add other blocks as needed
+
+            # # Game Board 6
+            # Block(0, 1, 2, 2),
+            # Block(0, 0, 1, 1),
+            # Block(0, 3, 1, 1),
+            # Block(3, 1, 1, 1),
+            # Block(4, 1, 1, 1),
+            # Block(2, 2, 1, 1),
+            # Block(3, 2, 1, 1),
+            # Block(1, 0, 2, 1),
+            # Block(3, 0, 2, 1),
+            # Block(1, 3, 2, 1),
+            # Block(3, 3, 2, 1),
         # ]
+        #Random State
         return self.create_random_initial_state(self.cols, self.rows)
 
     def create_random_initial_state(self, cols, rows):
@@ -231,7 +237,7 @@ class Game:
 
         self.last_time = pygame.time.get_ticks()  # Initialize last_time for animation
 
-        end_menu = EndMenu(self.screen, self)  # Pass the Game instance to EndMenu
+        end_menu = EndMenu(self.screen, self)  # Pass the Game isntance to EndMenu
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -239,7 +245,7 @@ class Game:
                     sys.exit()
                 self.handle_event(event)
 
-            # Check for win and draw the board
+            # Check for win and draw board
             self.update()
             self.draw()
 
@@ -250,9 +256,9 @@ class Game:
                     self.reset()  # Reset the game state to return to the main menu
                     return  # Go back to the main menu
 
-            # If the game is won, delay a bit before quitting to show the last move
+            # If the game is won, delay a bit (0.5sec) before quitting to show the last move
             if self.game_won:
-                pygame.time.wait(500)  # Wait for 0.5 second before quitting
+                pygame.time.wait(500)  # Wait for 0.5 seconds before quiting
                 pygame.quit()
                 sys.exit()
 
@@ -260,7 +266,7 @@ class Game:
         if self.is_goal_state():
             print("CONGRATULATIONS! You've solved the puzzle!")
             print("-"*42)
-            self.game_won = True  # Set the game_won flag
+            self.game_won = True  # Set the game_won flag to TRUE
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -280,7 +286,7 @@ class Game:
 
     def get_selected_block(self, mouse_pos):
         for block in self.state:
-            # Create a rectangle for the block based on its grid position and size
+            # Create a rectangle for the block based on its grid_position and size
             rect = pygame.Rect(self.playable_x + block.grid_x * self.cell_width,
                                self.playable_y + block.grid_y * self.cell_height,
                                block.size_x * self.cell_width, block.size_y * self.cell_height)
@@ -347,14 +353,13 @@ class Game:
     def check_collisions(self, block):
         occupied_positions = set()
         for b in self.state:
-            # Collect positions of all blocks except the one being moved
+            # Collect the positions of all blocks except the one being moved
             if b != block:
                 occupied_positions.update(b.get_positions())
         # Return collision detection state
         return any(pos in occupied_positions for pos in block.get_positions())
 
     def print_current_state(self):
-        # Print current state
         print(f"Move: {self.move_count}")
         for block in self.state:
             print(f"Block at ({block.grid_x}, {block.grid_y}) with size ({block.size_x}, {block.size_y})")
@@ -379,17 +384,18 @@ class Game:
         background_image = pygame.transform.scale(background_image, (self.screen_width, self.screen_height))
         self.screen.blit(background_image, (0, 0))
 
-        # pygame.draw.rect(self.screen, WHITE, self.playable_area)
         # # Draw the grid
+        # pygame.draw.rect(self.screen, WHITE, self.playable_area)
         # for i in range(self.cols):
         #     for j in range(self.rows):
         #         rect = pygame.Rect(self.playable_x + i * self.cell_width, self.playable_y + j * self.cell_height,
         #                            self.cell_width, self.cell_height)
         #         pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)
-        # Draw all blocks in the game state
+
+        # Draw all blocks in the game state with the needed parameters
         for block in self.state:
             block.draw(self.screen, self.playable_x, self.playable_y, self.cell_width,
-                       self.cell_height)  # Pass parameters
+                       self.cell_height)
 
         # Draw the move counter
         self.draw_move_counter()

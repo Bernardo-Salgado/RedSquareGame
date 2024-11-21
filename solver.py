@@ -25,7 +25,7 @@ class Solver:
     # Perform BFS to find the shortest path to the goal state
     def bfs(self):
         # Initialize with the initial state as the starting path
-        initial_state_tuple = self.state_to_tuple(self.initial_state) # Tuple structure ((grid_x1, grid_y1, size_x1, size_y1),...,(grid_xn, grid_yn, size_xn, size_yn))
+        initial_state_tuple = self.state_to_tuple(self.initial_state) # Tuple structure ((grid_x1, grid_y1, size_x1, size_y1), ..., (grid_xn, grid_yn, size_xn, size_yn))
         initial_path = [self.initial_state]
 
         # Early check if the initial state is the goal
@@ -34,33 +34,35 @@ class Solver:
             return []
 
         visited = set([initial_state_tuple]) # Set initial state as visited, [] to treat state as an individual object in set
-        queue = deque([(self.initial_state, initial_path)]) # Queue stores state and path
+        queue = deque([(self.initial_state, initial_path)]) # Queue saves state and path
 
         while queue:
             # Take current state and the path
             current_state, path = queue.popleft()
-            # Check possible moves for each block
 
+            # Check possible moves for each block
             for block in current_state:
                 for direction in ['right', 'left', 'up', 'down']:
+
                     # Move current block
                     new_state = self.move_block(block, direction, current_state)
+
                     # Checks the move possibility
                     if new_state:
                         state_tuple = self.state_to_tuple(new_state)
-                        # Checks if visited
+                        # Checks if its been visited
                         if state_tuple not in visited:
                             visited.add(state_tuple)
                             new_path = path + [new_state]
                             # Checks the win status
                             if self.is_goal_state(new_state):
-                                # Return a solution path
+                                # Return its solution path
                                 return new_path
                             # Adds new state and the path to the queue
                             queue.append((new_state, new_path))
         return []
 
-    # Perform DFS to find the shortest path to the goal state with a depth limit
+    # Perform DFS to find the shortest path to the goal state with a depth limit (default is 7)
     def dfs(self, max_depth=7):
         # Initialize with the initial state as the starting path
         initial_path = [self.initial_state]
@@ -77,7 +79,7 @@ class Solver:
         stack = [(self.initial_state, initial_path, 0)]
 
         while stack:
-            # Take current state, path, depth
+            # Take current state, pathand depth
             current_state, path, depth = stack.pop()
 
             # If current depth exceeds max_depth, stop further exploration
@@ -87,7 +89,7 @@ class Solver:
             # Convert current state to tuple for comparison
             state_tuple = self.state_to_tuple(current_state)
 
-            # Check if the state was visited at a shallower or equal depth, meaning we don't need to explore it again because there will not be a solution in that state
+            # Check if the state was visited at a shallower or equal depth, meaning we dont need to explore it again because there will not be a solution in that state
             if state_tuple in visited and visited[state_tuple] <= depth:
                 continue  # Ignore this state
 
@@ -136,7 +138,7 @@ class Solver:
             print("Goal reached with 0 moves.")
             return []
 
-        # Priority queue stores states and their heuristic values
+        # Priority queue stores states and there heuristic values
         prior_queue = []
         heapq.heappush(prior_queue, (heuristic(self.initial_state), self.initial_state, initial_path))
 
@@ -213,14 +215,16 @@ class Solver:
         # Heuristic: Manhattan Distance
         red_block = state[0]  # Takes state of the red block (top left block credentials)
         goal_x, goal_y = self.target_positions[0] # Takes the goal credentials (top left credentials)
+        
         # Calculate Manhattan distance between the red block's top-left corner and target position
         distance = abs(red_block.grid_x - goal_x) + abs(red_block.grid_y - goal_y)
         return distance
 
     def euclidean(self, state):
-        # Heuristic: Euclidean Distance
+        # Heuristic:Euclidean Distance
         red_block = state[0]  # Takes state of the red block (top left block credentials)
         goal_x, goal_y = self.target_positions[0]  # Takes the goal position (top-left credentials)
+        
         # Calculate Euclidean distance between the red block's top-left corner and the target position
         distance = ((red_block.grid_x - goal_x) ** 2 + (red_block.grid_y - goal_y) ** 2) ** 0.5
         return distance
@@ -229,6 +233,7 @@ class Solver:
         # Heuristic: Chebyshev Distance
         red_block = state[0] # Takes state of the red block (top left block credentials)
         goal_x, goal_y = self.target_positions[0]   # Takes the goal position (top-left credentials)
+
         # Calculate the Chebyshev distance between the red block and the goal position
         distance = max(abs(red_block.grid_x - goal_x), abs(red_block.grid_y - goal_y))
         return distance
@@ -343,7 +348,7 @@ class Solver:
         # Print solution step by step
         self.print_solution(solution)
 
-        # Output results
+        # Output teh results in the terminal
         print(f"{solver_name} completed in {elapsed_time:.4f} seconds.")
         print(f"{solver_name} used {memory_used:.4f} KB during execution.")
         if len(solution) == 0:

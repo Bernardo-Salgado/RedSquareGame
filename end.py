@@ -39,7 +39,7 @@ class EndMenu:
         else:
             solved_text = f"Solved in {self.game.move_count} moves"
             text_surface = self.font.render(solved_text, True, (255, 255, 255))
-            text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, 100))  # Adjust the position as needed
+            text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, 100))  # Adjust here too the position as needed
             self.screen.blit(text_surface, text_rect)
 
         # Draw the options

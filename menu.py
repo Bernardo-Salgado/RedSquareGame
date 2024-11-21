@@ -41,6 +41,7 @@ class Menu:
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
         for i, option in enumerate(self.options):
+
             # Draw input popup for DFS max_depth
             if i == 2 and self.selected_option == 2: # If DFS is selected and input is active
                 self.draw_input_popup(mouse_x, mouse_y)
@@ -64,7 +65,7 @@ class Menu:
         if event.type == pygame.MOUSEMOTION:
             mouse_x, mouse_y = event.pos
             for i in range(len(self.options)):
-                # Check if mouse is hovering over an option
+                # Check if mouse is hovering over any option
                 if (self.screen.get_width() // 2 - 100 < mouse_x < self.screen.get_width() // 2 + 100 and 
                         650 + i * 48 - 20 < mouse_y < 650 + i * 48 + 20):  # Adjust for height of text
                     self.selected_option = i
@@ -76,6 +77,7 @@ class Menu:
                     return "start"
                 elif self.selected_option == 1:  # BFS
                     return "BFS"
+                # self.selected_option == 2 --> DFS is called in line 254
                 elif self.selected_option == 3:  # IDS
                     return "IDS"
                 elif self.selected_option == 4:  # Greedy Search, handle nested options
@@ -125,6 +127,7 @@ class Menu:
                     return "start"
                 elif self.selected_option == 1:  # BFS
                     return "BFS"
+                # self.selected_option == 2 --> DFS is called in line 254
                 elif self.selected_option == 3:  # IDS
                     return "IDS"
                 elif self.selected_option == 4:  # Greedy Search, handle nested options
@@ -144,7 +147,7 @@ class Menu:
 
                         option_rect = pygame.Rect(self.screen.get_width() // 2 + 150, 650 + 5 * 48 - 20 + i * 45, 223, 45)
 
-                        if option_rect.collidepoint(event.pos):  # Check if mouse is over a specific option
+                        if option_rect.collidepoint(event.pos):  # Check if mouse is hoverung over a specific option
 
                             print (option)
                             return option  # Return the specific A* option selected
@@ -164,7 +167,7 @@ class Menu:
                     sys.exit()
         return None
 
-    # Draws a popup box with given options at (x, y) and highlights the hovered option
+    # Draws a popup box with given options at(x,y) and highlights the hovered option
     def draw_popup(self, x, y, options, mouse_x, mouse_y):
         # Calculate the width of the longest option
         max_text_width = max(self.font.size(option)[0] for option in options)
@@ -204,7 +207,7 @@ class Menu:
         box_width = 300
         box_height = 100
 
-        # Popup background color and text color
+        # background and text color of the popup
         popup_color = (255, 165, 0)  # Orange
         text_color = (0, 0, 0)  # Black
 
